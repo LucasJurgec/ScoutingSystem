@@ -9,7 +9,7 @@ conn = mysql.connector.connect(
     port=int(os.getenv("DB_PORT")),
     user=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME"),
+    database=os.getenv("DB_NAME")
 )
 cur = conn.cursor()
 cur.execute("SHOW TABLES")
