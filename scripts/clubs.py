@@ -7,8 +7,7 @@ import mysql.connector
 from dotenv import load_dotenv
  
 load_dotenv()
- 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # ScoutingSystem folder
+
 CLUBS_CSV = "datasets/clubs_v2.csv"
  
 # Transfermarkt crest URL, {} gets replaced with the club_id
