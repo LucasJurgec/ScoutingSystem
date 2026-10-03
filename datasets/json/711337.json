@@ -1,0 +1,12 @@
+{
+  "player_id": 711337,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Custom release clause",
+      "description": "Player will recieve a special release clause for any club playing in the uefa Champions League.",
+      "details": { "applies_to": "release_clause", "release_clause": 50000000 }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "player_id": 709726,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Learn english clause",
+      "description": "Player must demonstrate proficiency in English and complete english tests to demonstrate growth."
+    }
+  ]
+}

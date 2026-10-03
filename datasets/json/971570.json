@@ -1,0 +1,12 @@
+{
+  "player_id": 971570,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Custom playing time clause",
+      "description": "Player will be guaranteed a minimum number of minutes per game.",
+      "details": { "applies_to": "playing_time", "value": 20 }
+    }
+  ]
+}

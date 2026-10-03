@@ -1,0 +1,12 @@
+{
+  "player_id": 1056993,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Ballon d'Or clause",
+      "description": "Player will receive a bonus if they win the Ballon d'Or award.",
+      "details": { "applies_to": "award", "bonus_amount": 75000000 }
+    }
+  ]
+}

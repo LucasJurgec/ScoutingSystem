@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "contract_clauses.schema.json",
+  "title": "Contract Clauses",
+  "description": "Extra contract clauses for one player that don't fit the relational tables (wage, expiry and release clause live in MySQL columns). A player with no file has no known extra clauses. Each clause has a 'type' and its own fields, so clauses in the same file can have different shapes.",
+  "type": "object",
+  "required": ["player_id", "last_updated", "clauses"],
+  "additionalProperties": false,
+  "properties": {
+    "player_id": { "type": "integer", "minimum": 1 },
+    "last_updated": { "type": "string", "format": "date" },
+    "clauses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/sell_on" },
+          { "$ref": "#/$defs/buyback" },
+          { "$ref": "#/$defs/appearance_bonus" },
+          { "$ref": "#/$defs/loyalty_bonus" },
+          { "$ref": "#/$defs/custom" }
+        ]
+      }
+    }
+  },
+
+  "$defs": {
+    "sell_on": {
+      "type": "object",
+      "required": ["type", "percentage", "from_club_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "sell_on" },
+        "percentage": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "from_club_id": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "buyback": {
+      "type": "object",
+      "required": ["type", "amount_eur"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "buyback" },
+        "amount_eur": { "type": "integer", "minimum": 0 },
+        "valid_until": { "type": "string", "format": "date" },
+        "club_id": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "appearance_bonus": {
+      "type": "object",
+      "required": ["type", "amount_eur", "appearances_required"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "appearance_bonus" },
+        "amount_eur": { "type": "integer", "minimum": 0 },
+        "appearances_required": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "loyalty_bonus": {
+      "type": "object",
+      "required": ["type", "amount_eur"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "loyalty_bonus" },
+        "amount_eur": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "custom": {
+      "description": "Catch-all for one-off clauses (e.g. a travel exemption). Only title and description are fixed; 'details' can hold anything.",
+      "type": "object",
+      "required": ["type", "title", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "custom" },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "details": { "type": "object" }
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "player_id": 371998,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "guaranteed time off",
+      "description": "Player will get a minimum of one month vacation after season ends.",
+      "details": { "applies_to": "end_of_season" }
+    }
+  ]
+}

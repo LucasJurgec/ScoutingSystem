@@ -1,0 +1,12 @@
+{
+  "player_id": 532826,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "guilty verdict",
+      "description": "Player will have his contract terminated if found guilty of misconduct.",
+      "details": { "applies_to": "player_contract" }
+    }
+  ]
+}

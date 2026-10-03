@@ -1,0 +1,12 @@
+{
+  "player_id": 1004301,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Custom sale clause",
+      "description": "Player may not be sold to any club inside the same country as the current club.",
+      "details": { "applies_to": "sale", "restricted_countries": ["England"] }
+    }
+  ]
+}

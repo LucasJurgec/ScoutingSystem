@@ -1,0 +1,9 @@
+{
+  "player_id": 7161,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    { "type": "sell_on", "percentage": 10, "from_club_id": 18 },
+    { "type": "appearance_bonus", "amount_eur": 2000000, "appearances_required": 50 },
+    { "type": "loyalty_bonus", "amount_eur": 3000000 }
+  ]
+}

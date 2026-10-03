@@ -1,0 +1,12 @@
+{
+  "player_id": 502722,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Custom release clause",
+      "description": "Player will recieve a lowered release clause for Newcastle United.",
+      "details": { "applies_to": "release_clause", "release_clause": 25000000 }
+    }
+  ]
+}

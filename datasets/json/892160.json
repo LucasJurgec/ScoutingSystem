@@ -1,0 +1,7 @@
+{
+  "player_id": 892160,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    { "type": "sell_on", "percentage": 20, "from_club_id": 148 }
+  ]
+}

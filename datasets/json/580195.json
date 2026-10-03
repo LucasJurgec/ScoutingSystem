@@ -1,0 +1,8 @@
+{
+  "player_id": 580195,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    { "type": "appearance_bonus", "amount_eur": 5000000, "appearances_required": 50 },
+    { "type": "loyalty_bonus", "amount_eur": 8000000 }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "player_id": 475959,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Club found guilty clause",
+      "description": "Player will receive a release clause if club is found guilty of misconduct.",
+      "details": { "applies_to": "release_clause", "release_clause": 50000000 }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "player_id": 813137,
+  "last_updated": "2026-09-30",
+  "clauses": [
+    {
+      "type": "custom",
+      "title": "Custom youth development clause",
+      "description": "Player will be made captain of the senior team after five seasons.",
+      "details": { "applies_to": "club_captaincy" }
+    }
+  ]
+}
