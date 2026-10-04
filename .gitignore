@@ -1,5 +1,6 @@
 # Secrets
 .env
+atlas_credentials.env
 
 # Data files (too big for GitHub, kept local)
 *.csv
