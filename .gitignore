@@ -5,7 +5,7 @@
 *.csv
 *.xlsx
 *.parquet
-data/
+datasets/
 
 # Python
 __pycache__/
