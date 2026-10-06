@@ -79,6 +79,7 @@ def get_players(
     query = """
         SELECT
             p.player_id, p.first_name, p.last_name, p.player_img, p.status,
+            TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
             pos.position_general, pos.position_advanced,
             c.club_id, c.club_name, c.club_logo,
             n.nation_code, n.nation_name, n.nation_flag,
