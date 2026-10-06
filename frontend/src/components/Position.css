@@ -1,0 +1,34 @@
+.position {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pitch {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.position-legend {
+  display: flex;
+  gap: 16px;
+  color: white;
+  font-size: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid black;
+}

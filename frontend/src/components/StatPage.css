@@ -1,0 +1,33 @@
+.stat-page {
+    display: grid;
+    grid-template-columns: minmax(0, 28fr) minmax(0, 72fr);
+    min-height: 100vh;
+    gap: 16px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.right-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 16px;
+}
+
+.stat-page-status {
+    color: white;
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+}
+
+@media (max-width: 900px) {
+    .stat-page { grid-template-columns: 1fr; }
+    .right-panel { grid-template-columns: 1fr; }
+}

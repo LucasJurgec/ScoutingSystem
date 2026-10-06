@@ -1,0 +1,46 @@
+.title {
+  font-size: 60px;
+  padding: 5px;
+  color: white;
+}
+
+.title-container {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  gap: 8px;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000 0%, #002868 50%, #01064b 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(253, 253, 253, 0.050) 0px,
+    rgba(252, 252, 251, 0.050) 1px,
+    transparent 1px,
+    transparent 40px
+  );
+  pointer-events: none;
+}
+
+p {
+  color: white;
+}
+
+h4 {
+  color: white;
+}

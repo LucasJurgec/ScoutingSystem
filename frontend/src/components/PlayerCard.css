@@ -1,0 +1,49 @@
+.player-header {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.header-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.img-profile-pic {
+    height: 220px;
+    width: 220px;
+    object-fit: cover;
+}
+
+.name {
+    font-size: 200%;
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.header-info p {
+    margin-top: 3px;
+}
+
+.nation-club-container p {
+    font-size: 15px;
+}
+
+.nation,
+.club {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nation-flag,
+.club-logo {
+    height: 30px;
+    width: 30px;
+    margin: 9px;
+    object-fit: contain;
+}
+
+.back-button {
+    color: white;
+}
