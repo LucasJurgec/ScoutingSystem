@@ -7,9 +7,9 @@ import Position from './Position';
 import Stats from './Stats';
 import MarketValue from './MarketValue';
 import StatCompare from './StatCompare';
-import { mergeSeasons, primaryPosition } from './statUtils';
+import { groupSeasons, primaryPosition } from './statUtils';
 
-// Set REACT_APP_API_URL in the frontend .env when it's deployed
+// Set VITE_API_URL in frontend/.env when it's deployed
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 function StatPage() {
@@ -32,8 +32,8 @@ function StatPage() {
             .finally(() => setLoading(false));
     }, [playerId]);
 
-    // one entry per season (mid-season moves merged), oldest -> newest
-    const seasons = useMemo(() => (player ? mergeSeasons(player.stats) : []), [player]);
+    // one entry per season, each holding 1+ club rows, oldest -> newest
+    const seasons = useMemo(() => (player ? groupSeasons(player.stats) : []), [player]);
 
     if (loading) return <div className="stat-page-status">Loading...</div>;
     if (error) return <div className="stat-page-status">{error}</div>;

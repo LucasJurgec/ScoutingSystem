@@ -26,22 +26,43 @@ const WIDTH = 600;
 const HEIGHT = 440;
 const RADIUS = 140;
 
+// Every season-club row becomes its own option. A season split across two
+// clubs shows as "2024-25 (Arsenal)" and "2024-25 (Chelsea)".
+function toEntries(seasons) {
+    return seasons.flatMap(s =>
+        s.rows.map(row => ({
+            ...row,
+            label: s.rows.length > 1 ? `${s.season_name} (${row.club_name})` : s.season_name,
+        }))
+    );
+}
+
+// default comparison: latest entry vs the latest entry from an EARLIER season
+function defaultIndexB(entries) {
+    const a = entries[entries.length - 1];
+    for (let i = entries.length - 2; i >= 0; i--) {
+        if (entries[i].season_id !== a.season_id) return i;
+    }
+    return -1; // only one season -> show a single shape
+}
+
 function StatCompare({ seasons, position }) {
-    // default: latest season vs the one before it (-1 = none)
-    const [indexA, setIndexA] = useState(seasons.length - 1);
-    const [indexB, setIndexB] = useState(seasons.length - 2);
+    const entries = useMemo(() => toEntries(seasons), [seasons]);
+
+    const [indexA, setIndexA] = useState(entries.length - 1);
+    const [indexB, setIndexB] = useState(() => (entries.length ? defaultIndexB(entries) : -1));
 
     const axes = RADAR_CONFIG[position] ?? RADAR_CONFIG.CM;
 
-    // Each axis is scaled to the player's best season for that stat,
+    // Each axis is scaled to the player's best season-club row for that stat,
     // so a point on the outer ring = their career best (in our data).
     const maxes = useMemo(
-        () => axes.map(key => Math.max(0, ...seasons.map(s => Number(s[key]) || 0)) * 1.1),
-        [axes, seasons]
+        () => axes.map(key => Math.max(0, ...entries.map(e => Number(e[key]) || 0)) * 1.1),
+        [axes, entries]
     );
 
-    const seasonA = seasons[indexA] ?? null;
-    const seasonB = indexB >= 0 ? seasons[indexB] ?? null : null;
+    const seasonA = entries[indexA] ?? null;
+    const seasonB = indexB >= 0 ? entries[indexB] ?? null : null;
 
     const svgRef = useRef(null);
 
@@ -140,7 +161,7 @@ function StatCompare({ seasons, position }) {
         drawPolygon(seasonA, COLOUR_A);
     }, [axes, maxes, seasonA, seasonB]);
 
-    if (seasons.length === 0) return null;
+    if (entries.length === 0) return null;
 
     return (
         <div className="compare">
@@ -150,8 +171,8 @@ function StatCompare({ seasons, position }) {
                 <label>
                     <span className="swatch" style={{ background: COLOUR_A }} />
                     <select value={indexA} onChange={e => setIndexA(Number(e.target.value))}>
-                        {seasons.map((s, i) => (
-                            <option key={s.season_id} value={i}>{s.season_name}</option>
+                        {entries.map((e, i) => (
+                            <option key={e.stat_id} value={i}>{e.label}</option>
                         ))}
                     </select>
                 </label>
@@ -162,8 +183,8 @@ function StatCompare({ seasons, position }) {
                     <span className="swatch" style={{ background: COLOUR_B }} />
                     <select value={indexB} onChange={e => setIndexB(Number(e.target.value))}>
                         <option value={-1}>None</option>
-                        {seasons.map((s, i) => (
-                            <option key={s.season_id} value={i}>{s.season_name}</option>
+                        {entries.map((e, i) => (
+                            <option key={e.stat_id} value={i}>{e.label}</option>
                         ))}
                     </select>
                 </label>

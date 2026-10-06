@@ -26,9 +26,49 @@
 }
 
 .stats-club {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
     margin: 10px 0 0;
     opacity: 0.8;
+}
+
+.club-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.club-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.club-btn.active {
+    background: rgba(51, 102, 255, 0.35);
+    border-color: #99c2ff;
+}
+
+.club-btn-logo {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+.season-btn:focus-visible,
+.club-btn:focus-visible {
+    outline: 2px solid #99c2ff;
+    outline-offset: 2px;
 }
 
 .stats-section-title {

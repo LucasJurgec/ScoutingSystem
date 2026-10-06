@@ -113,10 +113,10 @@ function Position({ primary, secondary = [] }) {
 
             <div className="position-legend">
                 <span className="legend-item">
-                    <span className="legend-dot" style={{ background: COLOURS.primary }} /> Primary
+                    <span className="legend-dot" style={{ background: COLOURS.primary }} /> Primary position
                 </span>
                 <span className="legend-item">
-                    <span className="legend-dot" style={{ background: COLOURS.secondary }} /> Secondary
+                    <span className="legend-dot" style={{ background: COLOURS.secondary }} /> Secondary positions
                 </span>
             </div>
         </div>
