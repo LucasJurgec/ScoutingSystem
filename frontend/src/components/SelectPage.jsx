@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE } from '../api';
 import './SelectPage.css';
 import { formatEuro } from './statUtils';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const PAGE_SIZE = 50;
 const SILHOUETTE = '/images/PlayerSilhouette.png';
 const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Attacker'];

@@ -1,0 +1,172 @@
+.info-modal {
+    padding: 0;
+    width: min(560px, 92vw);
+    max-height: 85vh;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: #0a1440;
+    color: white;
+}
+
+.info-modal::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.info-modal-inner {
+    padding: 20px 24px 24px;
+}
+
+.info-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.info-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.info-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.info-modal-close:focus-visible {
+    outline: 2px solid #99c2ff;
+}
+
+.info-status {
+    margin: 8px 0;
+    opacity: 0.85;
+}
+
+.info-subtitle {
+    margin: 20px 0 8px;
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+.info-tag {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.info-tag.warn {
+    background: rgba(250, 82, 82, 0.25);
+    color: #ffb3b3;
+}
+
+/* key/value list used by DataView and ContractInfo */
+.data-view {
+    margin: 0;
+}
+
+.data-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 40%) 1fr;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.data-view.nested .data-row {
+    grid-template-columns: minmax(100px, 45%) 1fr;
+    padding: 3px 0;
+    border-bottom: none;
+}
+
+.data-row dt {
+    opacity: 0.7;
+}
+
+.data-row dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.data-view.nested dd {
+    font-weight: normal;
+}
+
+.data-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.report-text p {
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+.info-meta {
+    font-weight: normal;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+/* ---------- contract clauses ---------- */
+
+.clause-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.clause {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.clause-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.clause-text {
+    margin: 0 0 4px;
+    line-height: 1.5;
+}
+
+/* ---------- scouting report text ---------- */
+
+.report-text {
+    margin-top: 16px;
+}
+
+.report-para {
+    line-height: 1.6;
+    margin: 0 0 12px;
+}
+
+.report-heading {
+    margin: 16px 0 6px;
+    font-size: 16px;
+}
+
+.report-heading.pos { color: #7ee2a8; }
+.report-heading.neg { color: #ffb3b3; }
+
+.report-list {
+    margin: 0 0 8px;
+    padding-left: 20px;
+    line-height: 1.6;
+}
+
+.report-list.pos li::marker { color: #7ee2a8; }
+.report-list.neg li::marker { color: #ffb3b3; }

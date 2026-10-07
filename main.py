@@ -190,28 +190,61 @@ def get_player(player_id: int):
         player["market_values"][-1]["market_value"] if player["market_values"] else None
     )
  
-    # --- contract (structured columns + semi-structured JSON clauses) ---
+    return player
+ 
+ 
+@app.get("/players/{player_id}/contract")
+def get_contract(player_id: int):
+    """Structured contract columns + the semi-structured contract_data JSON.
+    Returns null if there's no contract info on file for this player."""
     contract = run_query("""
         SELECT contract_start, contract_expiry, weekly_wage, release_clause, contract_data
         FROM contract_information
         WHERE player_id = %s
     """, (player_id,), one=True)
+ 
     if contract and contract["contract_data"]:
         data = contract["contract_data"]
         if isinstance(data, (bytes, bytearray)):
             data = data.decode()
         contract["contract_data"] = json.loads(data) if isinstance(data, str) else data
-    player["contract"] = contract   # None if no contract info on file
+        add_club_names(contract["contract_data"])
+    return contract
  
-    # --- scouting report (unstructured, MongoDB) ---
+ 
+def add_club_names(contract_data):
+    """Sell-on / buy-back clauses store club ids. Look up the names so the
+    frontend can say "15% to Ajax" instead of "15% to club 610"."""
+    if not isinstance(contract_data, dict):
+        return
+    clauses = [c for c in contract_data.get("clauses") or [] if isinstance(c, dict)]
+    id_keys = ("from_club_id", "club_id")
+    club_ids = {c[k] for c in clauses for k in id_keys if c.get(k)}
+    if not club_ids:
+        return
+    placeholders = ", ".join(["%s"] * len(club_ids))
+    rows = run_query(
+        f"SELECT club_id, club_name FROM club WHERE club_id IN ({placeholders})",
+        tuple(club_ids),
+    )
+    names = {r["club_id"]: r["club_name"] for r in rows}
+    for c in clauses:
+        for k in id_keys:
+            if c.get(k) in names:
+                c[k.replace("_id", "_name")] = names[c[k]]   # from_club_id -> from_club_name
+ 
+ 
+@app.get("/players/{player_id}/report")
+def get_report(player_id: int):
+    """Latest scouting report from MongoDB (unstructured). null if none exists."""
     try:
-        player["scouting_report"] = get_reports_collection().find_one(
-            {"player_id": player_id}, {"_id": 0}   # drop ObjectId, it isn't JSON-serialisable
+        return get_reports_collection().find_one(
+            {"player_id": player_id},
+            {"_id": 0, "embedding": 0},     # drop the ObjectId and the 384-number vector
+            sort=[("last_updated", -1)],    # newest first if there are several
         )
     except Exception:
-        player["scouting_report"] = None   # Mongo down shouldn't break the whole page
- 
-    return player
+        raise HTTPException(status_code=503, detail="Scouting reports are unavailable right now")
  
  
 # ---------- filter dropdowns ----------
