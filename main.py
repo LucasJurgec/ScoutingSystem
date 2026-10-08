@@ -1,6 +1,7 @@
 import os
 import json
 from fastapi import FastAPI, Query, HTTPException
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database import get_connection, get_reports_collection
  
@@ -245,6 +246,38 @@ def get_report(player_id: int):
         )
     except Exception:
         raise HTTPException(status_code=503, detail="Scouting reports are unavailable right now")
+ 
+ 
+# ---------- chatbot ----------
+ 
+class ChatRequest(BaseModel):
+    message: str
+    history: list[dict] = []   # [{"role": "user"|"assistant", "content": "..."}]
+ 
+ 
+@app.post("/chat")
+def chat(req: ChatRequest):
+    # imported here so a chatbot problem (missing package, no API key)
+    # never takes down the rest of the API
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="Message is empty")
+    try:
+        from chatbot import ask
+    except Exception as e:                         # missing package, bad import, etc.
+        print("Chatbot failed to load:", repr(e))
+        raise HTTPException(status_code=500, detail=f"Chatbot failed to load: {e}")
+    try:
+        return ask(req.message, req.history)
+    except RuntimeError as e:                      # e.g. GOOGLE_API_KEY missing
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        text = str(e)
+        import traceback; traceback.print_exc()
+        if "429" in text or "RESOURCE_EXHAUSTED" in text or "quota" in text.lower():
+            raise HTTPException(status_code=429, detail="The AI model's free-tier limit was hit. Wait a minute and try again.")
+        if "Recursion limit" in text:
+            raise HTTPException(status_code=500, detail="The assistant couldn't work that one out. Try rephrasing the question.")
+        raise HTTPException(status_code=500, detail="Something went wrong answering that question.")
  
  
 # ---------- filter dropdowns ----------
