@@ -11,12 +11,16 @@ from what the tools returned.
 import os
 import re
 from dotenv import load_dotenv
+import ollama
 import mysql.connector
 from mysql.connector import pooling
 from langchain.agents import create_agent
+from langchain.agents.middleware import AgentMiddleware
+from langgraph.errors import GraphBubbleUp
 from langchain_core.tools import tool
 from langchain_google_genai import ChatGoogleGenerativeAI
 from database import get_reports_collection
+from google import genai
  
 load_dotenv()
  
@@ -247,19 +251,125 @@ ANSWERING
  
 _agent = None
  
+ 
+def _gemini(name, retries):
+    # Gemini 3.x models are tuned to run at their default temperature (1.0),
+    # so we don't force one.
+    return ChatGoogleGenerativeAI(
+        model=name,
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
+        max_retries=retries,
+    )
+ 
+ 
+def _mistral(name, retries):
+    from langchain_mistralai import ChatMistralAI
+    return ChatMistralAI(
+        model=name,
+        api_key=os.getenv("MISTRAL_API_KEY"),
+        temperature=0.2,        # low = steadier SQL
+        max_retries=retries,
+        timeout=60,
+    )
+
+def _ollama(name, retries):
+    # Local Ollama running on this laptop (free, no key, no rate limits)
+    from langchain_ollama import ChatOllama
+    return ChatOllama(
+        model=name,
+        base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
+        num_ctx=16384,       # see note below
+        keep_alive="30m",    # keep the model loaded between questions
+        temperature=0.2,
+    )
+ 
+ 
+def _claude(name, retries):
+    from langchain_anthropic import ChatAnthropic
+    return ChatAnthropic(
+        model=name,
+        api_key=os.getenv("ANTHROPIC_API_KEY"),
+        max_tokens=1500,
+        max_retries=retries,
+    )
+ 
+ 
+def model_name(model):
+    return getattr(model, "model", None) or getattr(model, "model_name", None) or type(model).__name__
+ 
+ 
+PROVIDERS = {
+    # name in CHAT_MODEL_ORDER -> (API key env var, builder)
+    # Gemini gets 0 retries: its 429/503 errors persist for a while, so it's
+    # better to hand straight over than to burn quota retrying.
+    "gemini":  ("GOOGLE_API_KEY",    lambda: _gemini(os.getenv("GEMINI_MODEL", "gemini-3.8-flash"), 0)),
+    "mistral": ("MISTRAL_API_KEY",   lambda: _mistral(os.getenv("MISTRAL_MODEL", "mistral-small-latest"), 2)),
+    "ollama":  ("OLLAMA_MODEL",      lambda: _ollama(os.getenv("OLLAMA_MODEL", "gpt-oss:20b"), 0)),
+    "claude":  ("ANTHROPIC_API_KEY", lambda: _claude(os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5"), 2)),
+}
+ 
+ 
+def build_models():
+    """Models in the order they're tried, from CHAT_MODEL_ORDER in .env
+    (default "gemini,mistral,claude"). Providers without an API key are skipped.
+    Tip: set CHAT_MODEL_ORDER=mistral,gemini while testing to save Gemini quota."""
+    order = os.getenv("CHAT_MODEL_ORDER", "gemini,mistral,claude")
+    models = []
+    for name in [n.strip().lower() for n in order.split(",") if n.strip()]:
+        if name not in PROVIDERS:
+            print(f"[chatbot] unknown provider '{name}' in CHAT_MODEL_ORDER, skipping")
+            continue
+        key_var, build = PROVIDERS[name]
+        if os.getenv(key_var):
+            models.append(build())
+        else:
+            print(f"[chatbot] {name} skipped: {key_var} not set")
+    if not models:
+        raise RuntimeError("No AI provider configured: set GOOGLE_API_KEY and/or MISTRAL_API_KEY in .env")
+    return models
+ 
+ 
+class AllModelsFailed(Exception):
+    """Every model in the chain errored. Holds each model's error."""
+    def __init__(self, errors):
+        self.errors = errors   # [(model_name, error_text), ...]
+        super().__init__(" | ".join(f"{m}: {e}" for m, e in errors))
+ 
+ 
+class FallbackChain(AgentMiddleware):
+    """Tries each model in turn for every step of the agent. Unlike LangChain's
+    built-in fallback, it prints which model failed and why, and if all of them
+    fail it reports EVERY model's error, not just the last one."""
+ 
+    def __init__(self, backups):
+        super().__init__()
+        self.backups = backups
+ 
+    def wrap_model_call(self, request, handler):
+        errors = []
+        for i, model in enumerate([request.model, *self.backups]):
+            try:
+                return handler(request if i == 0 else request.override(model=model))
+            except GraphBubbleUp:
+                raise
+            except Exception as e:
+                text = " ".join(str(e).split())[:300]
+                print(f"[chatbot] {model_name(model)} failed -> {type(e).__name__}: {text}")
+                errors.append((model_name(model), f"{type(e).__name__}: {text}"))
+        raise AllModelsFailed(errors)
+ 
+ 
 def get_agent():
     global _agent
     if _agent is None:
-        if not os.getenv("GOOGLE_API_KEY"):
-            raise RuntimeError("GOOGLE_API_KEY is not set in .env")
-        # Gemini 3.x models are tuned to run at their default temperature (1.0);
-        # forcing 0 can make them loop or degrade, so we leave it alone.
-        model = ChatGoogleGenerativeAI(
-            model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
-            google_api_key=os.getenv("GOOGLE_API_KEY"),
-            max_retries=1,     # don't burn free-tier quota retrying
+        primary, *backups = build_models()
+        print("[chatbot] model order:", " -> ".join(model_name(m) for m in [primary, *backups]))
+        _agent = create_agent(
+            primary,
+            tools=[run_sql, search_scouting_reports],
+            system_prompt=SYSTEM_PROMPT,
+            middleware=[FallbackChain(backups)],
         )
-        _agent = create_agent(model, tools=[run_sql, search_scouting_reports], system_prompt=SYSTEM_PROMPT)
     return _agent
  
  
@@ -282,4 +392,12 @@ def ask(message, history=None):
         for call in getattr(m, "tool_calls", None) or []:
             steps.append({"tool": call["name"], "input": call["args"]})
  
-    return {"answer": result["messages"][-1].text, "steps": steps}
+    # which model(s) did the work, e.g. ["gemini-3.5-flash-lite"] or a mix after a handover
+    used = []
+    for m in result["messages"]:
+        if type(m).__name__ == "AIMessage":
+            name = (m.response_metadata or {}).get("model_name") or (m.response_metadata or {}).get("model")
+            if name and name not in used:
+                used.append(name)
+ 
+    return {"answer": result["messages"][-1].text, "steps": steps, "models_used": used}

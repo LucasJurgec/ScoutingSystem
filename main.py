@@ -266,17 +266,30 @@ def chat(req: ChatRequest):
     except Exception as e:                         # missing package, bad import, etc.
         print("Chatbot failed to load:", repr(e))
         raise HTTPException(status_code=500, detail=f"Chatbot failed to load: {e}")
+    from chatbot import AllModelsFailed
+    debug = os.getenv("CHAT_DEBUG", "1") == "1"
     try:
         return ask(req.message, req.history)
-    except RuntimeError as e:                      # e.g. GOOGLE_API_KEY missing
+    except RuntimeError as e:                      # e.g. no API keys set
         raise HTTPException(status_code=500, detail=str(e))
+    except AllModelsFailed as e:
+        busy = all(any(k in err.lower() for k in ("429", "503", "529", "resource_exhausted",
+                                                  "unavailable", "overloaded", "high demand", "rate limit"))
+                   for _, err in e.errors)
+        if debug:
+            # show every model's error so you can see e.g. Mistral's real problem
+            raise HTTPException(status_code=503 if busy else 500,
+                                detail={"message": "Every model failed", "errors": [f"{m}: {err}" for m, err in e.errors]})
+        if busy:
+            raise HTTPException(status_code=503, detail="The AI models are busy right now. Try again in a minute.")
+        raise HTTPException(status_code=500, detail="Something went wrong answering that question.")
     except Exception as e:
-        text = str(e)
         import traceback; traceback.print_exc()
-        if "429" in text or "RESOURCE_EXHAUSTED" in text or "quota" in text.lower():
-            raise HTTPException(status_code=429, detail="The AI model's free-tier limit was hit. Wait a minute and try again.")
+        text = str(e)
         if "Recursion limit" in text:
             raise HTTPException(status_code=500, detail="The assistant couldn't work that one out. Try rephrasing the question.")
+        if debug:
+            raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {text[:500]}")
         raise HTTPException(status_code=500, detail="Something went wrong answering that question.")
  
  
