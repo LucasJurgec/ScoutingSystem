@@ -126,7 +126,13 @@ function SelectPage() {
 
     return (
         <div className="select-page">
-            <h1 className="title select-title">Scouting System</h1>
+            <div className="select-header">
+                <h1 className="title select-title">TheScoutSystem</h1>
+                <nav className="page-nav">
+                    <Link to="/shortlist" className="nav-btn">Shortlist</Link>
+                    <Link to="/assistant" className="nav-btn nav-btn-primary">AI Assistant</Link>
+                </nav>
+            </div>
 
             <input
                 className="search-input"

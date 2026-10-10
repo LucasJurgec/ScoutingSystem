@@ -169,3 +169,47 @@ a.player-row:focus-visible {
         display: none;
     }
 }
+
+.select-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #222;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.nav-btn:hover {
+    background: #f2f2f2;
+    border-color: #999;
+}
+
+.nav-btn-primary {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    color: #fff;
+}
+
+.nav-btn-primary:hover {
+    background: #1559b8;
+    border-color: #1559b8;
+}

@@ -1,0 +1,82 @@
+.stat-chart { 
+    margin-top: 1rem; 
+}
+.stat-chart-svg { 
+    width: 100%; 
+    max-width: 280px; 
+    height: auto;
+}
+.stat-bar { 
+    fill: #2a78d6; 
+}
+.stat-mark { 
+    stroke: #eb6834; 
+    stroke-width: 3; 
+}
+.stat-mark-label { 
+    fill: #eb6834; 
+    font-size: 12px; 
+    font-weight: 600; 
+    text-anchor: middle; 
+}
+.stat-axis-label { 
+    fill: currentColor; 
+    font-size: 13px; 
+    text-anchor: middle;
+}
+.stat-chart-legend { 
+    display: flex;
+    gap: 16px; 
+    font-size: 13px; 
+    margin-top: 6px; 
+    color: rgba(255, 255, 255, 0.8);
+}
+.swatch { 
+    display: inline-block; 
+    width: 12px; 
+    height: 12px; 
+    border-radius: 2px; 
+    vertical-align: middle; 
+    margin-right: 4px; 
+}
+.swatch-bar { 
+    background: #2a78d6; 
+}
+.swatch-mark { 
+    background: #eb6834; 
+    height: 3px; 
+    border-radius: 0; 
+}
+
+.stat-axis text { 
+    fill: rgba(255, 255, 255, 0.8);
+    font-size: 11px; 
+}
+.stat-axis path, .stat-axis line { 
+    stroke: rgba(255, 255, 255, 0.8);
+}
+
+.stat-grid line { 
+    stroke: rgba(255, 255, 255, 0.8);
+    stroke-opacity: 0.15; 
+}
+.stat-grid path { 
+    display: none; 
+}
+
+.stat-chart { 
+    margin-top: 1rem; 
+    position: relative; 
+}
+
+.stat-tooltip {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    background: #000;
+    color: #fff;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
