@@ -123,7 +123,7 @@ def search_scouting_reports(query: str, player_ids: str = "", limit: int = 5) ->
     vector = get_embedder().encode(query).tolist()
  
     stage = {
-        "index": "report_vector_index",
+        "index": "vector_index",
         "path": "embedding",
         "queryVector": vector,
         "numCandidates": max(100, limit * 20),
@@ -376,6 +376,7 @@ def get_agent():
 def ask(message, history=None):
     """Run one chat turn. history = [{"role": "user"|"assistant", "content": "..."}]
     Returns the answer plus the tool calls made, so the UI can show the SQL used."""
+    config={"recursion_limit": 25}
     messages = [
         {"role": m["role"], "content": m["content"]}
         for m in (history or [])[-HISTORY_TURNS:]
@@ -385,7 +386,7 @@ def ask(message, history=None):
  
     # recursion_limit caps the think -> tool -> think loop so a confused
     # model can't burn through the free-tier quota on one question
-    result = get_agent().invoke({"messages": messages}, config={"recursion_limit": 10})
+    result = get_agent().invoke({"messages": messages}, config=config)
  
     steps = []
     for m in result["messages"]:
