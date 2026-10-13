@@ -114,3 +114,29 @@ def build_models(df):
         knn = NearestNeighbors(metric="cosine").fit(X)
 
         models[position] = (group, X, knn)
+
+def find_similar(player_id, n=5):
+    for group, X, knn in models.values():
+        match = group.index[group["player_id"] == player_id]
+        if len(match) == 0:
+            continue  # not in this position group, try the next
+
+        i = match[0]
+        k = min(n + 1, len(group))  # +1 because the player matches itself
+        distances, indices = knn.kneighbors(X[i].reshape(1, -1), n_neighbors=k)
+
+        results = group.iloc[indices[0]].copy()
+        results["similarity"] = ((1 - distances[0]) * 100).round(1)
+        results = results[results["player_id"] != player_id].head(n)
+
+        return results[["player_id", "name", "position_general", "league_id", "similarity"]].to_dict("records")
+
+    return None
+
+# checks if a player is eligible for comparison
+def is_eligible(player_id):
+    return any((group["player_id"] == player_id).any() for group, _, _ in models.values())
+
+# refreshes the model from the database, useful if the database has been updated
+def refresh():
+    build_models(load_players())

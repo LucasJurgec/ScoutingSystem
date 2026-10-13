@@ -111,7 +111,7 @@ function ExpectedStatChart({ row }) {
 
     return (
         <div className="stat-chart">
-            <h4 className="stats-section-title">Output vs expected</h4>
+            <h4 className="stats-section-title">Output vs Expected Output</h4>
             <svg ref={ref} className="stat-chart-svg" />
             <div ref={tipRef} className="stat-tooltip" />
             <div className="stat-chart-legend">
