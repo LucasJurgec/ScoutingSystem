@@ -6,7 +6,7 @@ from pymongo import MongoClient
 load_dotenv()  # reads backend/.env
 
 
-# ---------- MySQL (structured + contract JSON) ----------
+# MySQL
 
 def _mysql_config():
     config = {
@@ -38,8 +38,7 @@ def get_connection():
     # cursor.close(); conn.close() pattern still works as-is.
     return _pool.get_connection()
 
-
-# ---------- MongoDB Atlas (scouting reports) ----------
+# MongoDB
 
 _mongo_client = MongoClient(os.getenv("MONGODB_URI"))
 

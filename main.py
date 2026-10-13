@@ -20,11 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
  
- 
-# ---------- helper ----------
- 
 def run_query(sql, params=(), one=False):
-    """Runs a SELECT and returns rows as dicts (or one dict / None)."""
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True, buffered=True)
@@ -38,9 +34,6 @@ def run_query(sql, params=(), one=False):
  
 # The most recent season that has league data, used for "current" club/league
 LATEST_SEASON = "(SELECT MAX(season_id) FROM club_season)"
- 
- 
-# ---------- basic ----------
  
 @app.get("/")
 def read_root():
@@ -63,7 +56,7 @@ def health():
     return status
  
  
-# ---------- players ----------
+# players
  
 @app.get("/players")
 def get_players(
@@ -248,7 +241,7 @@ def get_report(player_id: int):
         raise HTTPException(status_code=503, detail="Scouting reports are unavailable right now")
  
  
-# ---------- chatbot ----------
+# chatbot
  
 class ChatRequest(BaseModel):
     message: str
@@ -293,7 +286,7 @@ def chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail="Something went wrong answering that question.")
  
  
-# ---------- filter dropdowns ----------
+# filter dropdowns
  
 @app.get("/nations")
 def get_nations():
