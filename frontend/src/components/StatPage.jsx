@@ -12,6 +12,7 @@ import InfoModal from './InfoModal';
 import ContractInfo from './ContractInfo';
 import ScoutReport from './ScoutReport';
 import { groupSeasons, primaryPosition } from './statUtils';
+import SimilarPlayers from './SimilarPlayer';
 
 function StatPage() {
     const { playerId } = useParams();
@@ -23,6 +24,7 @@ function StatPage() {
     useEffect(() => {
         setLoading(true);
         setError(null);
+        setOpenPanel(null); 
         axios.get(`${API_BASE}/players/${playerId}`)
             .then(response => setPlayer(response.data))
             .catch(err => {
@@ -53,6 +55,7 @@ function StatPage() {
                 <div className="detail-buttons">
                     <button className="detail-btn" onClick={() => setOpenPanel('contract')}>Contract info</button>
                     <button className="detail-btn" onClick={() => setOpenPanel('report')}>Scouting report</button>
+                    <button className="detail-btn" onClick={() => setOpenPanel('similar')}>Similar players</button>
                 </div>
                 <Position primary={primary} secondary={player.positions} />
                 <MarketValue value={player.market_value} />
@@ -72,12 +75,15 @@ function StatPage() {
                 />
             </div>
 
-            {/* contract + report are only fetched when their pop-up opens */}
+            {/* contract, report and similarity model are only fetched when their pop-up opens */}
             <InfoModal title={`Contract info: ${name}`} open={openPanel === 'contract'} onClose={closePanel}>
                 <ContractInfo playerId={player.player_id} />
             </InfoModal>
             <InfoModal title={`Scouting report: ${name}`} open={openPanel === 'report'} onClose={closePanel}>
                 <ScoutReport playerId={player.player_id} />
+            </InfoModal>
+            <InfoModal title={`Similar players: ${name}`} open={openPanel === 'similar'} onClose={closePanel}>
+                <SimilarPlayers playerId={player.player_id} />
             </InfoModal>
         </div>
     );

@@ -56,3 +56,12 @@
     .stat-page { grid-template-columns: 1fr; }
     .right-panel { grid-template-columns: 1fr; }
 }
+
+.similar-players a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.similar-players a:hover {
+    text-decoration: underline;
+}

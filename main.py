@@ -4,6 +4,9 @@ from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database import get_connection, get_reports_collection
+import SimilarPlayerModel as sp
+
+sp.refresh()  # load data + build the k-NN models once at startup
  
 app = FastAPI(title="Scouting System API")
  
@@ -239,7 +242,15 @@ def get_report(player_id: int):
         )
     except Exception:
         raise HTTPException(status_code=503, detail="Scouting reports are unavailable right now")
- 
+
+# similarity model
+
+@app.get("/players/{player_id}/similar")
+def get_similar(player_id: int):
+    results = sp.find_similar(player_id, n=5)
+    if results is None:
+        raise HTTPException(status_code=404, detail="No similar-player data for this player")
+    return {"results": results}
  
 # chatbot
  

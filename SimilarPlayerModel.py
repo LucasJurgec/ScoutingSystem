@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 import mysql.connector
 from database import _mysql_config
+from database import get_connection
 
 load_dotenv()
 
@@ -18,7 +19,7 @@ TOP5 = [8, 9, 10, 12, 15] # league_id for top 5 leagues
 MIN_MINUTES = 900
 
 FEATURES = {
-    "DF": [
+    "Defender": [
         "xg",
         "xa",     
         "key_passes",
@@ -28,12 +29,12 @@ FEATURES = {
         "fouls_drawn",
         "yellow_cards"
     ],
-    "MF": [
+    "Midfielder": [
         "goals",
         "assists",
         "xg",
         "xa",
-        "shots",
+        "shots_total",
         "key_passes", 
         "interceptions",
         "tackles_won",
@@ -42,12 +43,12 @@ FEATURES = {
         "crosses",
         "yellow_cards"
     ],
-    "FW": [
+    "Attacker": [
         "goals",
         "assists",
         "xg",
         "xa",
-        "shots",
+        "shots_total",
         "shots_on_target",
         "key_passes", 
         "interceptions",
@@ -63,39 +64,39 @@ FEATURES = {
 models = {}
 
 def load_players():
-    # Load eligible outfield players and compute per-90 stats
     all_stats = sorted({col for cols in FEATURES.values() for col in cols})
-    stat_cols = ", ".join(f"ps.{s}" for s in all_stats)
+    stat_cols = ", ".join(f"SUM(ps.{s}) AS {s}" for s in all_stats)
     placeholders = ", ".join(["%s"] * len(TOP5))
 
     query = f"""
         SELECT ps.player_id,
                p.first_name, p.last_name,
                pos.position_general,
-               ps.league_id, ps.minutes,
+               MAX(cs.league_id) AS league_id,
+               SUM(ps.minutes_played) AS minutes,
                {stat_cols}
         FROM player_stats ps
-        JOIN players p   ON ps.player_id = p.player_id
-        JOIN positions pos ON p.position_id = pos.position_id
+        JOIN player p        ON ps.player_id = p.player_id
+        JOIN position pos    ON p.position_id = pos.position_id
+        JOIN club_season cs  ON ps.club_id = cs.club_id AND ps.season_id = cs.season_id
         WHERE ps.season_id = %s
-          AND ps.league_id IN ({placeholders})
-          AND ps.minutes >= %s
-          AND pos.position_general != 'goalkeeper'
+          AND cs.league_id IN ({placeholders})
+          AND pos.position_general != 'Goalkeeper'
+        GROUP BY ps.player_id, p.first_name, p.last_name, pos.position_general
+        HAVING SUM(ps.minutes_played) >= %s
     """
     params = [SEASON, *TOP5, MIN_MINUTES]
 
-    conn = mysql.connector.connect(**_mysql_config())
+    conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params)
     df = pd.DataFrame(cursor.fetchall())
     cursor.close()
     conn.close()
 
-    # build a single display name
-    df["name"] = df["first_name"] + " " + df["last_name"]
-
-    # convert raw counting stats to per-90: stat / minutes * 90
+    df["name"] = (df["first_name"].fillna("") + " " + df["last_name"].fillna("")).str.strip()
     df[all_stats] = df[all_stats].astype(float)
+    df["minutes"] = df["minutes"].astype(float)
     for stat in all_stats:
         df[stat + "_p90"] = df[stat] / df["minutes"] * 90
 
@@ -114,6 +115,8 @@ def build_models(df):
         knn = NearestNeighbors(metric="cosine").fit(X)
 
         models[position] = (group, X, knn)
+
+    print("Loaded players per position:", {pos: len(g) for pos, (g, _, _) in models.items()})
 
 def find_similar(player_id, n=5):
     for group, X, knn in models.values():
