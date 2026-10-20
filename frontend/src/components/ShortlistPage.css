@@ -1,0 +1,36 @@
+.shortlist-summary {
+    margin: 0 0 12px;
+    opacity: 0.75;
+}
+
+/* value + remove button share the last column, so the row grid stays the same */
+.shortlist-value {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.remove-btn {
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    color: inherit;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.remove-btn:hover,
+.remove-btn:focus-visible {
+    opacity: 1;
+    color: #e5484d;
+}
+
+.shortlist-error {
+    color: #e5484d;
+    font-size: 0.85rem;
+    margin: 4px 0 8px;
+}

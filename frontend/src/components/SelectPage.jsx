@@ -129,7 +129,7 @@ function SelectPage() {
             <div className="select-header">
                 <h1 className="title select-title">TheScoutSystem</h1>
                 <nav className="page-nav">
-                    <Link to="/shortlist" className="nav-btn">Shortlist</Link>
+                    <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
                     <Link to="/assistant" className="nav-btn nav-btn-primary">AI Assistant</Link>
                 </nav>
             </div>

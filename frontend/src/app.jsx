@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import StatPage from './components/StatPage';
 import SelectPage from './components/SelectPage';
 import AssistantPage from './components/AssistantPage';
+import ShortlistPage from './components/ShortlistPage';
 
 function App() {
     return (
@@ -10,6 +11,7 @@ function App() {
                 <Route path="/" element={<SelectPage />} />
                 <Route path="/player/:playerId" element={<StatPage />} />
                 <Route path="/assistant" element={<AssistantPage />} />
+                <Route path="/ShortlistPage" element={<ShortlistPage />} />
             </Routes>
         </BrowserRouter>
     );

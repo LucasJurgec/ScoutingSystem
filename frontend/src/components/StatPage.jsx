@@ -12,6 +12,7 @@ import InfoModal from './InfoModal';
 import ContractInfo from './ContractInfo';
 import ScoutReport from './ScoutReport';
 import { groupSeasons, primaryPosition } from './statUtils';
+import ShortlistButton from './ShortlistButton';
 import SimilarPlayers from './SimilarPlayer';
 
 function StatPage() {
@@ -76,15 +77,18 @@ function StatPage() {
             </div>
 
             {/* contract, report and similarity model are only fetched when their pop-up opens */}
-            <InfoModal title={`Contract info: ${name}`} open={openPanel === 'contract'} onClose={closePanel}>
-                <ContractInfo playerId={player.player_id} />
-            </InfoModal>
-            <InfoModal title={`Scouting report: ${name}`} open={openPanel === 'report'} onClose={closePanel}>
-                <ScoutReport playerId={player.player_id} />
-            </InfoModal>
-            <InfoModal title={`Similar players: ${name}`} open={openPanel === 'similar'} onClose={closePanel}>
-                <SimilarPlayers playerId={player.player_id} />
-            </InfoModal>
+            <div className="detail-buttons">
+                <ShortlistButton playerId={player.player_id} />
+                <InfoModal title={`Contract info: ${name}`} open={openPanel === 'contract'} onClose={closePanel}>
+                    <ContractInfo playerId={player.player_id} />
+                </InfoModal>
+                <InfoModal title={`Scouting report: ${name}`} open={openPanel === 'report'} onClose={closePanel}>
+                    <ScoutReport playerId={player.player_id} />
+                </InfoModal>
+                <InfoModal title={`Similar players: ${name}`} open={openPanel === 'similar'} onClose={closePanel}>
+                    <SimilarPlayers playerId={player.player_id} />
+                </InfoModal>
+            </div>
         </div>
     );
 }

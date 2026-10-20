@@ -251,6 +251,65 @@ def get_similar(player_id: int):
     if results is None:
         raise HTTPException(status_code=404, detail="No similar-player data for this player")
     return {"results": results}
+
+def run_write(sql, params=()):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        conn.commit()          # pool connections don't autocommit
+        affected = cursor.rowcount
+        cursor.close()
+        return affected
+    finally:
+        conn.close()
+
+
+# shortlist
+
+@app.get("/shortlist")
+def get_shortlist():
+    return run_query("""
+        SELECT
+            p.player_id, p.first_name, p.last_name, p.player_img, p.status,
+            TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
+            pos.position_general, pos.position_advanced,
+            c.club_id, c.club_name, c.club_logo,
+            n.nation_code, n.nation_name, n.nation_flag,
+            (SELECT mv.market_value FROM market_value mv
+                WHERE mv.player_id = p.player_id
+                ORDER BY mv.value_date DESC LIMIT 1) AS market_value,
+            s.date_added AS added_at
+        FROM shortlist s
+        JOIN player p     ON s.player_id = p.player_id
+        JOIN position pos ON p.position_id = pos.position_id
+        LEFT JOIN club c  ON p.club_id = c.club_id
+        JOIN nation n     ON p.nation_code = n.nation_code
+        ORDER BY s.date_added DESC
+    """)
+
+
+@app.get("/shortlist/{player_id}")
+def is_shortlisted(player_id: int):
+    row = run_query("SELECT 1 AS x FROM shortlist WHERE player_id = %s", (player_id,), one=True)
+    return {"shortlisted": row is not None}
+
+
+@app.post("/shortlist/{player_id}", status_code=201)
+def add_to_shortlist(player_id: int):
+    if not run_query("SELECT 1 AS x FROM player WHERE player_id = %s", (player_id,), one=True):
+        raise HTTPException(status_code=404, detail="Player not found")
+    run_write("""
+        INSERT INTO shortlist (player_id, date_added) VALUES (%s, NOW())
+        ON DUPLICATE KEY UPDATE date_added = date_added
+    """, (player_id,))
+    return {"shortlisted": True}
+
+
+@app.delete("/shortlist/{player_id}")
+def remove_from_shortlist(player_id: int):
+    run_write("DELETE FROM shortlist WHERE player_id = %s", (player_id,))
+    return {"shortlisted": False}
  
 # chatbot
  
