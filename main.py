@@ -5,6 +5,10 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database import get_connection, get_reports_collection
 import SimilarPlayerModel as sp
+import csv, io
+from datetime import datetime
+from fastapi.responses import FileResponse
+from apscheduler.schedulers.background import BackgroundScheduler
 
 sp.refresh()  # load data + build the k-NN models once at startup
  
@@ -391,3 +395,128 @@ def get_leagues():
         WHERE cs.season_id = {LATEST_SEASON}
         ORDER BY l.league_name ASC
     """)
+
+
+# league summary
+LEAGUE_SUMMARY_SQL = f"""
+WITH stats_season AS (
+    SELECT MAX(season_id) AS sid FROM player_stats
+),
+current_season AS (
+    SELECT {LATEST_SEASON} AS sid
+),
+squad AS (
+    SELECT
+        cs.league_id,
+        c.club_id,
+        c.club_name,
+        CONCAT_WS(' ', p.first_name, p.last_name) AS player_name,
+        TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
+        (SELECT mv.market_value FROM market_value mv
+         WHERE mv.player_id = p.player_id
+         ORDER BY mv.value_date DESC LIMIT 1) AS market_value,
+        COALESCE((SELECT SUM(ps.goals) FROM player_stats ps
+                  WHERE ps.player_id = p.player_id
+                    AND ps.season_id = (SELECT sid FROM stats_season)), 0) AS goals,
+        COALESCE((SELECT SUM(ps.assists) FROM player_stats ps
+                  WHERE ps.player_id = p.player_id
+                    AND ps.season_id = (SELECT sid FROM stats_season)), 0) AS assists
+    FROM club_season cs
+    JOIN club c   ON cs.club_id = c.club_id
+    JOIN player p ON p.club_id = c.club_id
+    WHERE cs.season_id = (SELECT sid FROM current_season)
+      AND (%s IS NULL OR cs.league_id = %s)
+),
+ranked AS (
+    SELECT squad.*,
+        ROW_NUMBER() OVER (PARTITION BY club_id ORDER BY market_value DESC)          AS mv_rank,
+        ROW_NUMBER() OVER (PARTITION BY club_id ORDER BY goals DESC, market_value DESC)   AS goal_rank,
+        ROW_NUMBER() OVER (PARTITION BY club_id ORDER BY assists DESC, market_value DESC) AS assist_rank
+    FROM squad
+)
+SELECT
+    club_name,
+    COUNT(*)                                            AS squad_size,
+    ROUND(AVG(age), 1)                                  AS avg_age,
+    ROUND(AVG(market_value))                            AS avg_market_value,
+    MAX(market_value)                                   AS top_market_value,
+    MAX(CASE WHEN mv_rank = 1 THEN player_name END)     AS top_value_player,
+    SUM(goals)                                          AS total_goals,
+    MAX(CASE WHEN goal_rank = 1 THEN player_name END)   AS top_scorer,
+    MAX(CASE WHEN goal_rank = 1 THEN goals END)         AS top_scorer_goals,
+    MAX(CASE WHEN assist_rank = 1 THEN player_name END) AS top_assister,
+    MAX(CASE WHEN assist_rank = 1 THEN assists END)     AS top_assister_assists
+FROM ranked
+GROUP BY club_id, club_name
+ORDER BY avg_market_value DESC
+"""
+
+def build_league_summary(league_id=None):
+    return run_query(LEAGUE_SUMMARY_SQL, (league_id, league_id))
+
+@app.get("/reports/league-summary")
+def league_summary(league_id: int = Query(None)):
+    return build_league_summary(league_id)
+
+REPORTS_DIR = os.getenv("REPORTS_DIR", "reports")
+os.makedirs(REPORTS_DIR, exist_ok=True)
+
+CSV_COLUMNS = [
+    ("club_name", "Team"), ("squad_size", "Squad size"), ("avg_age", "Avg age"),
+    ("avg_market_value", "Avg market value"), ("top_market_value", "Top market value"),
+    ("top_value_player", "Top value player"), ("total_goals", "Total goals"),
+    ("top_scorer", "Top scorer"), ("top_scorer_goals", "Top scorer goals"),
+    ("top_assister", "Top assister"), ("top_assister_assists", "Top assister assists"),
+]
+
+def rows_to_csv(rows):
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow([label for _, label in CSV_COLUMNS])
+    for r in rows:
+        w.writerow([r.get(k, "") for k, _ in CSV_COLUMNS])
+    return buf.getvalue()
+
+def generate_weekly_reports():
+    leagues = run_query(f"""
+        SELECT DISTINCT l.league_id, l.league_name
+        FROM club_season cs JOIN league l ON cs.league_id = l.league_id
+        WHERE cs.season_id = {LATEST_SEASON}
+    """)
+    stamp = datetime.now().strftime("%Y-%m-%d")
+    for lg in leagues:
+        rows = build_league_summary(lg["league_id"])
+        if not rows:
+            continue
+        safe = lg["league_name"].replace(" ", "_").replace("/", "-")
+        with open(os.path.join(REPORTS_DIR, f"league_summary_{safe}_{stamp}.csv"),
+                  "w", newline="", encoding="utf-8") as f:
+            f.write(rows_to_csv(rows))
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(generate_weekly_reports, "cron", day_of_week="mon", hour=2,
+                  id="weekly_league_summary", replace_existing=True)
+scheduler.start()
+
+@app.get("/reports/league-summary/files")
+def list_report_files():
+    files = []
+    for name in sorted(os.listdir(REPORTS_DIR), reverse=True):
+        if name.endswith(".csv"):
+            full = os.path.join(REPORTS_DIR, name)
+            files.append({"name": name,
+                          "generated_at": datetime.fromtimestamp(os.path.getmtime(full)).isoformat()})
+    return files
+
+@app.get("/reports/league-summary/files/{name}")
+def download_report_file(name: str):
+    safe = os.path.basename(name)                 # blocks ../ path traversal
+    path = os.path.join(REPORTS_DIR, safe)
+    if not os.path.exists(path):
+        raise HTTPException(404, "Report not found")
+    return FileResponse(path, media_type="text/csv", filename=safe)
+
+@app.post("/reports/league-summary/generate")
+def generate_now():
+    generate_weekly_reports()
+    return {"ok": True}

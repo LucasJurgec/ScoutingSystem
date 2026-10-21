@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../api';
 import './SelectPage.css';
-import { formatEuro } from './statUtils';
+import { formatEuro } from './StatPageComponents/statUtils';
 
 const PAGE_SIZE = 50;
 const SILHOUETTE = '/images/PlayerSilhouette.png';
@@ -131,6 +131,7 @@ function SelectPage() {
                 <nav className="page-nav">
                     <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
                     <Link to="/assistant" className="nav-btn nav-btn-primary">AI Assistant</Link>
+                    <Link to="/league-summary" className="nav-btn">League Summary</Link>
                 </nav>
             </div>
 

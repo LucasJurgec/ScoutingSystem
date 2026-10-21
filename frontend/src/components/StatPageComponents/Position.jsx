@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import './Position.css';
+import './StatPageComponents/Position.css';
 
 // ids match the position_advanced enum in the database
 const POSITIONS = [

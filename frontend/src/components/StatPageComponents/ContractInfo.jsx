@@ -1,5 +1,5 @@
 import { useApi } from '../api';
-import { formatEuro } from './statUtils';
+import { formatEuro } from './StatPageComponents/statUtils';
 import DataView, { formatDate, humanize } from './DataView';
 
 // "1 yr 8 mos left", flagged when under 12 months

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { API_BASE } from '../api';
+import { API_BASE } from '../../api';
 
 function ShortlistButton({ playerId }) {
     const [shortlisted, setShortlisted] = useState(false);

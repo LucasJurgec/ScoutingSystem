@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import './InfoModal.css';
+import './StatPageComponents/InfoModal.css';
 
 // Pop-up panel built on the native <dialog>, so Esc-to-close and
 // keeping keyboard focus inside the pop-up come for free.

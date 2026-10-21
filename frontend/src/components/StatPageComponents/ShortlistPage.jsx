@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../api';
 import './SelectPage.css';     // reuse the list/row styles
-import './ShortlistPage.css';
+import './StatPageComponents/ShortlistPage.css';
 import { formatEuro } from './statUtils';
 
 const SILHOUETTE = '/images/PlayerSilhouette.png';

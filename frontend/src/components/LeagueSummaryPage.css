@@ -1,0 +1,47 @@
+.table-wrap { 
+    overflow-x: auto; 
+}
+.summary-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    color: #fff; 
+    font-size: 14px; 
+}
+.summary-table th, .summary-table td {
+  padding: 8px 10px; 
+  text-align: left; 
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.summary-table th { 
+    cursor: pointer; 
+    user-select: none; 
+    position: sticky; 
+    top: 0; 
+    background: #01064b; 
+}
+.summary-table tbody tr:hover { 
+    background: rgba(51,102,255,0.15); 
+}
+.weekly-reports { 
+    margin-top: 32px; 
+}
+.weekly-head { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    gap: 1rem; 
+}
+.file-list { 
+    list-style: none; padding: 0; 
+}
+.file-list li { 
+    display: flex; 
+    justify-content: space-between; 
+    gap: 1rem;
+    padding: 8px 0; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+}
+.file-list a { 
+    color: #99c2ff; 
+}

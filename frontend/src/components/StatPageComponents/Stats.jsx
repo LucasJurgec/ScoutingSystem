@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './Stats.css';
-import { STAT_LABELS, STAT_SECTIONS, formatStat } from './statUtils';
-import ExpectedStatChart from './ExpectedCompare';
+import { STAT_LABELS, STAT_SECTIONS, formatStat } from './StatPageComponents/statUtils';
+import ExpectedStatChart from './StatPageComponents/ExpectedCompare';
 
 const OUTFIELD_SECTIONS = ['general', 'attacking', 'defending', 'discipline'];
 const GOALKEEPER_SECTIONS = ['general', 'goalkeeping', 'discipline'];
