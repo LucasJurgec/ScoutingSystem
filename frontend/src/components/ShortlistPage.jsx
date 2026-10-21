@@ -52,6 +52,29 @@ function ShortlistPage() {
     const totalValue = players.reduce((sum, p) => sum + (Number(p.market_value) || 0), 0);
     const hasActiveFilters = search || position || sort !== 'added';
 
+    const downloadCsv = () => {
+        const esc = (v) => {
+            const s = String(v ?? '');
+            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        };
+        const headers = ['First name', 'Last name', 'Club', 'Market value', 'Position'];
+        const rows = visible.map(p => [
+            p.first_name,
+            p.last_name,
+            p.club_name ?? p.status,
+            p.market_value ?? '',
+            p.position_general,
+        ]);
+        const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n');
+
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'shortlist.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     const clearFilters = () => {
         setSearch('');
         setPosition('');
@@ -107,6 +130,8 @@ function ShortlistPage() {
                     <option value="value">Highest value</option>
                     <option value="name">Name A–Z</option>
                 </select>
+
+                <button className="nav-btn" onClick={downloadCsv} disabled={!visible.length}>Download CSV</button>
 
                 {hasActiveFilters && (
                     <button className="clear-btn" onClick={clearFilters}>Clear filters</button>
