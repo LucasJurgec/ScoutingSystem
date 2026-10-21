@@ -1,4 +1,4 @@
-import './StatPageComponents/PlayerCard.css';
+import './PlayerCard.css';
 import { Link } from 'react-router-dom';
 
 const SILHOUETTE = '/images/PlayerSilhouette.png';

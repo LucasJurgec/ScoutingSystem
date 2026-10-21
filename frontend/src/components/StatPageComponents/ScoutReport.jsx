@@ -1,5 +1,5 @@
-import { useApi } from '../api';
-import DataView, { humanize } from './DataView';
+import { useApi } from '../../api';
+import DataView, { humanize } from '../DataView';
 
 // Fields holding the written report. Any other long string counts too.
 const TEXT_KEYS = ['report_text', 'content', 'summary', 'report', 'notes', 'text', 'body'];

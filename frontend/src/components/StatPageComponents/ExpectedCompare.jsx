@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import './StatPageComponents/ExpectedCompare.css';
+import './ExpectedCompare.css';
 
 
 const BARS = [

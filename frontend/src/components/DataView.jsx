@@ -1,4 +1,4 @@
-import { formatEuro } from './statUtils';
+import { formatEuro } from './StatPageComponents/statUtils';
 
 // Renders any JSON object as a labelled list. Used for contract_data and
 // the scouting report, since their keys vary from player to player.

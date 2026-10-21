@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { API_BASE } from '../api';
+import { API_BASE } from '../../api';
 
 function SimilarPlayers({ playerId }) {
     const [results, setResults] = useState(null);

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useMemo, useState } from 'react';
 import * as d3 from 'd3';
-import './StatPageComponents/StatCompare.css';
+import './StatCompare.css';
 import { STAT_LABELS, formatStat } from './statUtils';
 
 // 5 axes per position, all stats we actually have now

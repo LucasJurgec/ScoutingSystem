@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../api';
 import './SelectPage.css';     // reuse the list/row styles
-import './StatPageComponents/ShortlistPage.css';
-import { formatEuro } from './statUtils';
+import './ShortlistPage.css';
+import { formatEuro } from './StatPageComponents/statUtils';
 
 const SILHOUETTE = '/images/PlayerSilhouette.png';
 const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Attacker'];

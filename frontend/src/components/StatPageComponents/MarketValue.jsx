@@ -1,4 +1,4 @@
-import './StatPageComponents/MarketValue.css';
+import './MarketValue.css';
 
 // Rough fixed rates, fine for the prototype
 const CURRENCIES = [

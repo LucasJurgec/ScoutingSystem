@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE } from '../api';
-import './StatPageComponents/StatPage.css';
+import './StatPage.css';
 import PlayerCard from './StatPageComponents/PlayerCard';
 import Position from './StatPageComponents/Position';
 import Stats from './StatPageComponents/Stats';
