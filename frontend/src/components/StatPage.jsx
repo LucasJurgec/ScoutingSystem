@@ -7,7 +7,7 @@ import PlayerCard from './StatPageComponents/PlayerCard';
 import Position from './StatPageComponents/Position';
 import Stats from './StatPageComponents/Stats';
 import MarketValue from './StatPageComponents/MarketValue';
-import StatCompare from './StatCompare';
+import StatCompare from './StatPageComponents/StatCompare';
 import InfoModal from './StatPageComponents/InfoModal';
 import ContractInfo from './StatPageComponents/ContractInfo';
 import ScoutReport from './StatPageComponents/ScoutReport';
