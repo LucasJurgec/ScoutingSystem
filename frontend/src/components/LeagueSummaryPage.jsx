@@ -74,64 +74,64 @@ function LeagueSummaryPage() {
             .catch(console.error).finally(() => setGenerating(false));
     };
 
-  return (
-    <div className="select-page">
-      <div className="select-header">
-        <h1 className="title select-title">League Summary</h1>
-        <nav className="page-nav">
-          <Link to="/" className="nav-btn">Players</Link>
-          <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
-        </nav>
-      </div>
+    return (
+        <div className="select-page">
+            <div className="select-header">
+                <h1 className="title select-title">League Summary</h1>
+                <nav className="page-nav">
+                    <Link to="/" className="nav-btn">Players</Link>
+                    <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
+                </nav>
+            </div>
 
-      <div className="filters">
-        <select value={leagueId} onChange={e => setLeagueId(e.target.value)} aria-label="League">
-          <option value="">All leagues</option>
-          {leagues.map(l => <option key={l.league_id} value={l.league_id}>{l.league_name}</option>)}
-        </select>
-        <button className="nav-btn" onClick={downloadView} disabled={!sorted.length}>Download CSV</button>
-      </div>
+            <div className="filters">
+                <select value={leagueId} onChange={e => setLeagueId(e.target.value)} aria-label="League">
+                    <option value="">All leagues</option>
+                    {leagues.map(l => <option key={l.league_id} value={l.league_id}>{l.league_name}</option>)}
+                </select>
+                <button className="nav-btn" onClick={downloadView} disabled={!sorted.length}>Download CSV</button>
+            </div>
 
-      {loading ? <p className="list-status">Loading…</p> : (
-        <div className="table-wrap">
-          <table className="summary-table">
-            <thead>
-              <tr>{COLUMNS.map(c => (
-                <th key={c.key} onClick={() => toggleSort(c.key)}>
-                  {c.label}{sortKey === c.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
-                </th>))}</tr>
-            </thead>
-            <tbody>
-              {sorted.map((r, i) => (
-                <tr key={i}>{COLUMNS.map(c => (
-                  <td key={c.key}>{r[c.key] == null ? '–' : c.money ? formatEuro(r[c.key]) : r[c.key]}</td>
-                ))}</tr>
+            {loading ? <p className="list-status">Loading…</p> : (
+            <div className="table-wrap">
+              <table className="summary-table">
+                <thead>
+                  <tr>{COLUMNS.map(c => (
+                    <th key={c.key} onClick={() => toggleSort(c.key)}>
+                      {c.label}{sortKey === c.key ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ''}
+                    </th>))}</tr>
+                </thead>
+                <tbody>
+                  {sorted.map((r, i) => (
+                    <tr key={i}>{COLUMNS.map(c => (
+                      <td key={c.key}>{r[c.key] == null ? '–' : c.money ? formatEuro(r[c.key]) : r[c.key]}</td>
+                    ))}</tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        <div className="weekly-reports">
+          <div className="weekly-head">
+            <h2>Weekly reports</h2>
+            <button className="nav-btn" onClick={generateNow} disabled={generating}>
+              {generating ? 'Generating…' : 'Generate now'}
+            </button>
+          </div>
+          {files.length === 0 ? <p className="list-status">No reports generated yet.</p> : (
+            <ul className="file-list">
+              {files.map(f => (
+                <li key={f.name}>
+                  <a href={`${API_BASE}/reports/league-summary/files/${encodeURIComponent(f.name)}`}>{f.name}</a>
+                  <span>{new Date(f.generated_at).toLocaleString()}</span>
+                </li>
               ))}
-            </tbody>
-          </table>
+            </ul>
+          )}
         </div>
-      )}
-
-      <div className="weekly-reports">
-        <div className="weekly-head">
-          <h2>Weekly reports</h2>
-          <button className="nav-btn" onClick={generateNow} disabled={generating}>
-            {generating ? 'Generating…' : 'Generate now'}
-          </button>
-        </div>
-        {files.length === 0 ? <p className="list-status">No reports generated yet.</p> : (
-          <ul className="file-list">
-            {files.map(f => (
-              <li key={f.name}>
-                <a href={`${API_BASE}/reports/league-summary/files/${encodeURIComponent(f.name)}`}>{f.name}</a>
-                <span>{new Date(f.generated_at).toLocaleString()}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
-    </div>
-  );
+    );
 }
 
 export default LeagueSummaryPage;
