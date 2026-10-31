@@ -38,6 +38,8 @@ function SelectPage() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState(null);
 
+    const [adminUser, setAdminUser] = useState(null);
+
     const updateParam = (key, value) => {
         setParams(prev => {
             const next = new URLSearchParams(prev);
@@ -105,6 +107,12 @@ function SelectPage() {
         return () => { cancelled = true; };
     }, [queryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        axios.get(`${API_BASE}/auth/me`, { withCredentials: true })
+            .then(res => setAdminUser(res.data.username))
+            .catch(() => setAdminUser(null));
+    }, []);
+
     const loadMore = () => {
         setLoadingMore(true);
         axios.get(`${API_BASE}/players`, { params: buildQuery(players.length) })
@@ -132,6 +140,10 @@ function SelectPage() {
                     <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
                     <Link to="/assistant" className="nav-btn nav-btn-primary">AI Assistant</Link>
                     <Link to="/league-summary" className="nav-btn">League Summary</Link>
+                    <Link to="/admin" className="nav-btn" title={adminUser ? `Logged in as ${adminUser}` : 'Admin login'}>
+                        {adminUser && <span className="status-dot" aria-hidden="true" />}
+                        {adminUser ? 'Admin' : 'Admin Login'}
+                    </Link>
                 </nav>
             </div>
 

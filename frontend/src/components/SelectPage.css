@@ -213,3 +213,10 @@ a.player-row:focus-visible {
     background: #1559b8;
     border-color: #1559b8;
 }
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+}

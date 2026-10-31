@@ -4,6 +4,8 @@ from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from database import get_connection, get_reports_collection
+from starlette.middleware.sessions import SessionMiddleware
+from adminLogin import router as admin_router
 import SimilarPlayerModel as sp
 import csv, io
 from datetime import datetime
@@ -13,6 +15,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 sp.refresh()  # load data + build the k-NN models once at startup
  
 app = FastAPI(title="Scouting System API")
+
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET"), max_age=60 * 60 * 8)
  
 origins = os.getenv(
     "CORS_ORIGINS",
@@ -26,6 +30,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(admin_router)
  
 def run_query(sql, params=(), one=False):
     conn = get_connection()
