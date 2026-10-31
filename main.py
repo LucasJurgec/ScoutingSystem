@@ -489,29 +489,40 @@ def generate_weekly_reports():
         FROM club_season cs JOIN league l ON cs.league_id = l.league_id
         WHERE cs.season_id = {LATEST_SEASON}
     """)
-    stamp = datetime.now().strftime("%Y-%m-%d")
+    stamp = datetime.now().strftime("%Y-%m-%d_%H%M")          # CHANGED: added time so runs don't overwrite
     for lg in leagues:
         rows = build_league_summary(lg["league_id"])
         if not rows:
             continue
         safe = lg["league_name"].replace(" ", "_").replace("/", "-")
         with open(os.path.join(REPORTS_DIR, f"league_summary_{safe}_{stamp}.csv"),
-                  "w", newline="", encoding="utf-8") as f:
+                  "w", newline="", encoding="utf-8-sig") as f:   # CHANGED: utf-8-sig so Excel shows accents
             f.write(rows_to_csv(rows))
 
+# CHANGED: schedule settings, edit these to change when it runs
+SCHEDULE_DAY = "sat"     # mon, tue, wed, thu, fri, sat, sun, or "*" for every day
+SCHEDULE_HOUR = 18       # 24-hour clock
+SCHEDULE_MINUTE = 0
+
 scheduler = BackgroundScheduler()
-scheduler.add_job(generate_weekly_reports, "cron", day_of_week="mon", hour=2,
-                  id="weekly_league_summary", replace_existing=True)
+scheduler.add_job(generate_weekly_reports, "cron",
+                  day_of_week=SCHEDULE_DAY, hour=SCHEDULE_HOUR, minute=SCHEDULE_MINUTE,
+                  id="weekly_league_summary", replace_existing=True,
+                  coalesce=True, misfire_grace_time=3600)
 scheduler.start()
+print("[scheduler] Weekly league summary next run:",
+      scheduler.get_job("weekly_league_summary").next_run_time)
 
 @app.get("/reports/league-summary/files")
 def list_report_files():
     files = []
-    for name in sorted(os.listdir(REPORTS_DIR), reverse=True):
-        if name.endswith(".csv"):
-            full = os.path.join(REPORTS_DIR, name)
-            files.append({"name": name,
-                          "generated_at": datetime.fromtimestamp(os.path.getmtime(full)).isoformat()})
+    names = [n for n in os.listdir(REPORTS_DIR) if n.endswith(".csv")]
+    # CHANGED: newest first instead of alphabetical
+    names.sort(key=lambda n: os.path.getmtime(os.path.join(REPORTS_DIR, n)), reverse=True)
+    for name in names:
+        full = os.path.join(REPORTS_DIR, name)
+        files.append({"name": name,
+                      "generated_at": datetime.fromtimestamp(os.path.getmtime(full)).isoformat()})
     return files
 
 @app.get("/reports/league-summary/files/{name}")
