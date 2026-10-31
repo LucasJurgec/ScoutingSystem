@@ -6,7 +6,6 @@ import './StatPage.css';
 import PlayerCard from './StatPageComponents/PlayerCard';
 import Position from './StatPageComponents/Position';
 import Stats from './StatPageComponents/Stats';
-import MarketValue from './StatPageComponents/MarketValue';
 import StatCompare from './StatPageComponents/StatCompare';
 import InfoModal from './StatPageComponents/InfoModal';
 import ContractInfo from './StatPageComponents/ContractInfo';
@@ -15,6 +14,8 @@ import { groupSeasons, primaryPosition } from './StatPageComponents/statUtils';
 import ShortlistButton from './StatPageComponents/ShortlistButton';
 import SimilarPlayers from './StatPageComponents/SimilarPlayer';
 import TransferHistory from './StatPageComponents/TransferHistory';
+import MarketValue from './StatPageComponents/MarketValue';
+
 
 function StatPage() {
     const { playerId } = useParams();
@@ -61,7 +62,6 @@ function StatPage() {
                     <button className="detail-btn" onClick={() => setOpenPanel('transfers')}>Transfer history</button>
                 </div>
                 <Position primary={primary} secondary={player.positions} />
-                <MarketValue value={player.market_value} />
             </div>
 
             <div className="right-panel">
@@ -71,11 +71,14 @@ function StatPage() {
                     seasons={seasons}
                     isGoalkeeper={isGoalkeeper}
                 />
-                <StatCompare
-                    key={`radar-${player.player_id}`}
-                    seasons={seasons}
-                    position={primary}
-                />
+                <div className="right-column">
+                    <StatCompare
+                        key={`radar-${player.player_id}`}
+                        seasons={seasons}
+                        position={primary}
+                    />
+                    <MarketValue value={player.market_value} history={player.market_values} />
+                </div>
             </div>
 
             {/* contract, report and similarity model are only fetched when their pop-up opens */}

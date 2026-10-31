@@ -1,11 +1,143 @@
 .market-container {
     font-size: 18px;
+    width: 100%;
 }
-
+ 
 .market-container p {
     margin: 2px 0;
 }
-
+ 
 .market-title {
     margin-bottom: 6px;
+}
+ 
+.market-current {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+}
+ 
+.market-current-main {
+    font-size: 22px;
+    font-weight: 700;
+}
+ 
+.market-current-alt {
+    font-size: 14px;
+    opacity: 0.65;
+}
+ 
+/* chart */
+ 
+.mv-chart {
+    position: relative;
+    width: 100%;
+    margin-top: 12px;
+    outline: none;
+    touch-action: pan-y;
+}
+ 
+.mv-chart:focus-visible {
+    outline: 2px solid #99c2ff;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+ 
+.mv-chart svg {
+    display: block;
+    overflow: visible;
+}
+ 
+.mv-empty {
+    font-size: 14px;
+    opacity: 0.6;
+}
+ 
+.mv-grid .tick line {
+    stroke: rgba(255, 255, 255, 0.1);
+}
+ 
+.mv-grid .tick text,
+.mv-axis .tick text {
+    fill: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+ 
+.mv-axis .domain,
+.mv-axis .tick line {
+    stroke: rgba(255, 255, 255, 0.25);
+}
+ 
+.mv-line {
+    fill: none;
+    stroke: #6f9bff;
+    stroke-width: 2px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+ 
+.mv-point {
+    fill: #6f9bff;
+    stroke: #01064b;   /* ring in the page colour so points separate from the line */
+    stroke-width: 2px;
+}
+ 
+.mv-crosshair {
+    position: absolute;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.3);
+    pointer-events: none;
+}
+ 
+.mv-focus {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border-radius: 50%;
+    background: #6f9bff;
+    box-shadow: 0 0 0 2px #01064b, 0 0 0 4px rgba(111, 155, 255, 0.5);
+    pointer-events: none;
+}
+ 
+.mv-tooltip {
+    position: absolute;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: #0b1033;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-size: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 2;
+    color: white;
+}
+ 
+.mv-tooltip.right.above { transform: translate(10px, calc(-100% - 10px)); }
+.mv-tooltip.left.above  { transform: translate(calc(-100% - 10px), calc(-100% - 10px)); }
+.mv-tooltip.right.below { transform: translate(10px, 10px); }
+.mv-tooltip.left.below  { transform: translate(calc(-100% - 10px), 10px); }
+ 
+.mv-tooltip-date {
+    opacity: 0.7;
+    font-size: 12px;
+}
+ 
+.mv-tooltip-value {
+    font-weight: 700;
+    font-size: 15px;
+}
+ 
+.mv-tooltip-change {
+    opacity: 0.7;
+    font-size: 12px;
+}
+ 
+.mv-cap-note {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 6px !important;
 }

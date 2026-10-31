@@ -2,7 +2,6 @@ import { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import './ExpectedCompare.css';
 
-
 const BARS = [
     { label: 'Goals',   actual: 'goals',   expected: 'xg' },
     { label: 'Assists', actual: 'assists', expected: 'xa' },
