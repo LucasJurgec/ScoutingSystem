@@ -3,12 +3,26 @@ import * as d3 from 'd3';
 import { formatDate } from '../DataView';
 import './MarketValue.css';
 
-// Rough fixed rates, fine for the prototype
-const CURRENCIES = [
-    { code: 'EUR', rate: 1 },
-    { code: 'GBP', rate: 0.863 },
-    { code: 'AUD', rate: 1.66 },
-];
+// Live GBP/AUD rates from the ECB via Frankfurter (free, no API key)
+const CURRENCY_API = 'https://api.frankfurter.dev/v1/latest?base=EUR&symbols=GBP,AUD';
+const ALT_CURRENCIES = ['GBP', 'AUD'];
+const FALLBACK_RATES = { GBP: 0.863, AUD: 1.66 }; // used until live rates load, or if the API is down
+
+// fetched once per page load and shared by every player page
+let ratesPromise = null;
+const getRates = () => {
+    if (!ratesPromise) {
+        ratesPromise = fetch(CURRENCY_API)
+            .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+            .then(d => ({ rates: { ...FALLBACK_RATES, ...d.rates }, date: d.date }))
+            .catch(err => {
+                console.warn('Exchange rates unavailable, using fallback rates', err);
+                ratesPromise = null; // try again next time
+                return { rates: FALLBACK_RATES, date: null };
+            });
+    }
+    return ratesPromise;
+};
 
 const MAX_POINTS = 20;  // only chart the most recent 20 valuations
 const HEIGHT = 220;
@@ -33,8 +47,11 @@ function MarketValue({ value, history = [] }) {
     const svgRef = useRef(null);
     const [width, setWidth] = useState(0);
     const [hoverIndex, setHoverIndex] = useState(null);
+    const [fx, setFx] = useState({ rates: FALLBACK_RATES, date: null });
 
-    // oldest -> newest, then keep the last 10
+    useEffect(() => { getRates().then(setFx); }, []);
+
+    // oldest -> newest, then keep the last MAX_POINTS
     const allPoints = useMemo(() => (history ?? [])
         .filter(h => h.market_value != null && h.value_date)
         .map(h => ({ date: new Date(h.value_date), value: Number(h.market_value), raw: h.value_date }))
@@ -152,11 +169,16 @@ function MarketValue({ value, history = [] }) {
                 : (
                     <p className="market-current">
                         <span className="market-current-main">{formatMoney(value, 'EUR')}</span>
-                        {CURRENCIES.filter(c => c.code !== 'EUR').map(({ code, rate }) => (
-                            <span key={code} className="market-current-alt">{formatMoney(value * rate, code)}</span>
+                        {ALT_CURRENCIES.map(code => (
+                            <span key={code} className="market-current-alt">
+                                {formatMoney(value * fx.rates[code], code)}
+                            </span>
                         ))}
                     </p>
                 )}
+            {value != null && fx.date && (
+                <p className="mv-cap-note">GBP/AUD at ECB rates, {formatDate(fx.date)}</p>
+            )}
 
             <div
                 ref={wrapRef}

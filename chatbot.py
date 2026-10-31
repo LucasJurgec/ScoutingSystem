@@ -281,6 +281,7 @@ def _ollama(name, retries):
         num_ctx=16384,       # see note below
         keep_alive="30m",    # keep the model loaded between questions
         temperature=0.2,
+        reasoning=False
     )
  
  
@@ -304,7 +305,7 @@ PROVIDERS = {
     # better to hand straight over than to burn quota retrying.
     "gemini":  ("GOOGLE_API_KEY",    lambda: _gemini(os.getenv("GEMINI_MODEL", "gemini-3.8-flash"), 0)),
     "mistral": ("MISTRAL_API_KEY",   lambda: _mistral(os.getenv("MISTRAL_MODEL", "mistral-small-latest"), 2)),
-    "ollama":  ("OLLAMA_MODEL",      lambda: _ollama(os.getenv("OLLAMA_MODEL", "gpt-oss:20b"), 0)),
+    "ollama":  ("OLLAMA_MODEL",      lambda: _ollama(os.getenv("OLLAMA_MODEL", "qwen3:8b"), 0)),
     "claude":  ("ANTHROPIC_API_KEY", lambda: _claude(os.getenv("CLAUDE_MODEL", "claude-sonnet-5-5"), 2)),
 }
  
