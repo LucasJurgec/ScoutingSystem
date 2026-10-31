@@ -14,6 +14,7 @@ import ScoutReport from './StatPageComponents/ScoutReport';
 import { groupSeasons, primaryPosition } from './StatPageComponents/statUtils';
 import ShortlistButton from './StatPageComponents/ShortlistButton';
 import SimilarPlayers from './StatPageComponents/SimilarPlayer';
+import TransferHistory from './StatPageComponents/TransferHistory';
 
 function StatPage() {
     const { playerId } = useParams();
@@ -57,6 +58,7 @@ function StatPage() {
                     <button className="detail-btn" onClick={() => setOpenPanel('contract')}>Contract info</button>
                     <button className="detail-btn" onClick={() => setOpenPanel('report')}>Scouting report</button>
                     <button className="detail-btn" onClick={() => setOpenPanel('similar')}>Similar players</button>
+                    <button className="detail-btn" onClick={() => setOpenPanel('transfers')}>Transfer history</button>
                 </div>
                 <Position primary={primary} secondary={player.positions} />
                 <MarketValue value={player.market_value} />
@@ -87,6 +89,9 @@ function StatPage() {
                 </InfoModal>
                 <InfoModal title={`Similar players: ${name}`} open={openPanel === 'similar'} onClose={closePanel}>
                     <SimilarPlayers playerId={player.player_id} />
+                </InfoModal>
+                <InfoModal title={`Transfer history: ${name}`} open={openPanel === 'transfers'} onClose={closePanel}>
+                    <TransferHistory playerId={player.player_id} />
                 </InfoModal>
             </div>
         </div>

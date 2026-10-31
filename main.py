@@ -253,6 +253,21 @@ def get_report(player_id: int):
     except Exception:
         raise HTTPException(status_code=503, detail="Scouting reports are unavailable right now")
 
+
+@app.get("/players/{player_id}/transfers")
+def get_transfers(player_id: int):
+    return run_query("""
+        SELECT
+            t.transfer_id, t.transfer_date, t.transfer_fee,
+            fc.club_name AS from_club_name, fc.club_logo AS from_club_logo,
+            tc.club_name AS to_club_name,   tc.club_logo AS to_club_logo
+        FROM transfer t
+        LEFT JOIN club fc ON t.from_club_id = fc.club_id
+        LEFT JOIN club tc ON t.to_club_id   = tc.club_id
+        WHERE t.player_id = %s
+        ORDER BY t.transfer_date DESC
+    """, (player_id,))
+
 # similarity model
 
 @app.get("/players/{player_id}/similar")

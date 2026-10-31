@@ -65,3 +65,69 @@
 .similar-players a:hover {
     text-decoration: underline;
 }
+
+.transfer-summary {
+    margin: 0 0 12px;
+}
+
+.transfer-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.transfer {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.transfer:last-child {
+    border-bottom: none;
+}
+
+.transfer-date {
+    font-size: 14px;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}
+
+.transfer-move {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.transfer-club {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.transfer-club img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.transfer-arrow {
+    opacity: 0.6;
+}
+
+.transfer-fee {
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.transfer-fee.unknown {
+    font-weight: 400;
+    opacity: 0.55;
+    font-style: italic;
+}
