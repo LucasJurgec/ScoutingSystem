@@ -79,7 +79,7 @@ function LeagueSummaryPage() {
             <div className="select-header">
                 <h1 className="title select-title">League Summary</h1>
                 <nav className="page-nav">
-                    <Link to="/" className="nav-btn">Players</Link>
+                    <Link to="/" className="nav-btn">← Scouting</Link>
                     <Link to="/ShortlistPage" className="nav-btn">Shortlist</Link>
                 </nav>
             </div>
