@@ -21,6 +21,58 @@ const SORTERS = {
         (a.first_name ?? '').localeCompare(b.first_name ?? ''),
 };
 
+// ---- CSV column picker ----------------------------------------------------
+// `field` is the key the /shortlist API returns. A column only shows up in the
+// picker if at least one player actually has that key, so the stat/contract
+// options appear automatically once the backend query returns them.
+// `value` is optional; without it the raw field is exported.
+const CSV_COLUMNS = [
+    // Profile
+    { key: 'position', label: 'Position', group: 'Profile', field: 'position_general',
+      value: p => p.position_advanced || p.position_general, on: true },
+    { key: 'age', label: 'Age', group: 'Profile', field: 'age', on: true },
+    { key: 'club', label: 'Club', group: 'Profile', field: 'club_name',
+      value: p => p.club_name ?? p.status, on: true },
+    { key: 'nation', label: 'Nation', group: 'Profile', field: 'nation_name', on: true },
+    { key: 'value', label: 'Market value (€)', group: 'Profile', field: 'market_value', on: true },
+    { key: 'added', label: 'Date added', group: 'Profile', field: 'added_at',
+      value: p => String(p.added_at ?? '').slice(0, 10) },
+
+    // Season stats (2025/26) — match these field names to your SQL aliases
+    { key: 'apps', label: 'Appearances', group: 'Season stats', field: 'appearances' },
+    { key: 'minutes', label: 'Minutes', group: 'Season stats', field: 'minutes' },
+    { key: 'goals', label: 'Goals', group: 'Season stats', field: 'goals' },
+    { key: 'assists', label: 'Assists', group: 'Season stats', field: 'assists' },
+    { key: 'xg', label: 'xG', group: 'Season stats', field: 'xg' },
+    { key: 'xa', label: 'xA', group: 'Season stats', field: 'xa' },
+    { key: 'key_passes', label: 'Key passes', group: 'Season stats', field: 'key_passes' },
+    { key: 'clean_sheets', label: 'Clean sheets', group: 'Season stats', field: 'clean_sheets' },
+
+    // Contract
+    { key: 'expiry', label: 'Contract expiry', group: 'Contract', field: 'contract_expiry',
+      value: p => String(p.contract_expiry ?? '').slice(0, 10) },
+    { key: 'wage', label: 'Weekly wage (€)', group: 'Contract', field: 'weekly_wage' },
+    { key: 'release', label: 'Release clause (€)', group: 'Contract', field: 'release_clause' },
+    { key: 'clauses', label: 'Extra clauses', group: 'Contract', field: 'extra_clauses' },
+
+    // Scouting (MongoDB)
+    { key: 'has_report', label: 'Has scouting report', group: 'Scouting', field: 'has_report' },
+    { key: 'report_updated', label: 'Report last updated', group: 'Scouting', field: 'report_updated',
+      value: p => String(p.report_updated ?? '').slice(0, 10) },
+];
+
+const DEFAULT_COLS = CSV_COLUMNS.filter(c => c.on).map(c => c.key);
+const getValue = (col, p) => (col.value ? col.value(p) : p[col.field]);
+
+const STORAGE_KEY = 'shortlist-csv-columns';
+const loadSavedColumns = () => {
+    try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (Array.isArray(saved)) return saved;
+    } catch { /* storage blocked or corrupt — fall back to defaults */ }
+    return DEFAULT_COLS;
+};
+
 function ShortlistPage() {
     const [players, setPlayers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -30,6 +82,9 @@ function ShortlistPage() {
     const [search, setSearch] = useState('');
     const [position, setPosition] = useState('');
     const [sort, setSort] = useState('added');
+
+    const [csvCols, setCsvCols] = useState(loadSavedColumns);
+    const [showCols, setShowCols] = useState(false);
 
     useEffect(() => {
         axios.get(`${API_BASE}/shortlist`)
@@ -41,6 +96,11 @@ function ShortlistPage() {
             .finally(() => setLoading(false));
     }, []);
 
+    // remember the user's column choice between visits
+    useEffect(() => {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(csvCols)); } catch { /* ignore */ }
+    }, [csvCols]);
+
     const visible = useMemo(() => {
         const term = search.trim().toLowerCase();
         return players
@@ -49,30 +109,40 @@ function ShortlistPage() {
             .sort(SORTERS[sort]);
     }, [players, search, position, sort]);
 
+    // only offer columns the API actually sent
+    const availableCols = useMemo(
+        () => CSV_COLUMNS.filter(c => players.some(p => c.field in p)),
+        [players],
+    );
+    const chosenCols = availableCols.filter(c => csvCols.includes(c.key));   // keeps CSV_COLUMNS order
+    const colGroups = [...new Set(availableCols.map(c => c.group))];
+
+    const toggleCol = (key) =>
+        setCsvCols(prev => (prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]));
+
     const totalValue = players.reduce((sum, p) => sum + (Number(p.market_value) || 0), 0);
     const hasActiveFilters = search || position || sort !== 'added';
 
     const downloadCsv = () => {
         const esc = (v) => {
             const s = String(v ?? '');
-            return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+            return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
         };
-        const headers = ['First name', 'Last name', 'Club', 'Market value', 'Position'];
+        const headers = ['First name', 'Last name', ...chosenCols.map(c => c.label)];
         const rows = visible.map(p => [
             p.first_name,
             p.last_name,
-            p.club_name ?? p.status,
-            p.market_value ?? '',
-            p.position_general,
+            ...chosenCols.map(c => getValue(c, p)),
         ]);
-        const csv = [headers, ...rows].map(r => r.map(esc).join(',')).join('\n');
+        // BOM so Excel reads UTF-8 properly (Mbappé, Ødegaard, etc.)
+        const csv = '﻿' + [headers, ...rows].map(r => r.map(esc).join(',')).join('\r\n');
 
-        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'shortlist.csv';
+        a.download = `shortlist-${new Date().toLocaleDateString('en-CA')}.csv`;   // YYYY-MM-DD, local time
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 0);
     };
 
     const clearFilters = () => {
@@ -131,12 +201,59 @@ function ShortlistPage() {
                     <option value="name">Name A–Z</option>
                 </select>
 
+                <button
+                    className="nav-btn"
+                    onClick={() => setShowCols(s => !s)}
+                    aria-expanded={showCols}
+                    aria-controls="csv-columns"
+                    disabled={!players.length}
+                >
+                    CSV columns ({chosenCols.length + 1})
+                </button>
+
                 <button className="nav-btn" onClick={downloadCsv} disabled={!visible.length}>Download CSV</button>
 
                 {hasActiveFilters && (
                     <button className="clear-btn" onClick={clearFilters}>Clear filters</button>
                 )}
             </div>
+
+            {showCols && players.length > 0 && (
+                <div id="csv-columns" className="csv-columns">
+                    <p className="csv-columns-note">
+                        Name is always included. The export uses the {visible.length} {visible.length === 1 ? 'player' : 'players'} currently
+                        shown, in the current sort order.
+                    </p>
+
+                    {colGroups.map(group => (
+                        <fieldset key={group} className="csv-group">
+                            <legend>{group}</legend>
+                            <div className="csv-chips">
+                                {availableCols.filter(c => c.group === group).map(c => {
+                                    const on = csvCols.includes(c.key);
+                                    return (
+                                        <button
+                                            key={c.key}
+                                            type="button"
+                                            className={`csv-chip${on ? ' is-on' : ''}`}
+                                            aria-pressed={on}
+                                            onClick={() => toggleCol(c.key)}
+                                        >
+                                            {on && <span aria-hidden="true">✓ </span>}{c.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </fieldset>
+                    ))}
+
+                    <div className="csv-columns-actions">
+                        <button className="clear-btn" onClick={() => setCsvCols(availableCols.map(c => c.key))}>Select all</button>
+                        <button className="clear-btn" onClick={() => setCsvCols([])}>Name only</button>
+                        <button className="clear-btn" onClick={() => setCsvCols(DEFAULT_COLS)}>Reset</button>
+                    </div>
+                </div>
+            )}
 
             {actionError && <p className="shortlist-error">{actionError}</p>}
 

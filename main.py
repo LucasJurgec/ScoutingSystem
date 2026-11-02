@@ -294,7 +294,7 @@ def run_write(sql, params=()):
 
 @app.get("/shortlist")
 def get_shortlist():
-    return run_query("""
+    players = run_query("""
         SELECT
             p.player_id, p.first_name, p.last_name, p.player_img, p.status,
             TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE()) AS age,
@@ -304,15 +304,69 @@ def get_shortlist():
             (SELECT mv.market_value FROM market_value mv
                 WHERE mv.player_id = p.player_id
                 ORDER BY mv.value_date DESC LIMIT 1) AS market_value,
-            s.date_added AS added_at
+            s.date_added AS added_at,
+ 
+            -- latest season stats (structured)
+            st.appearances, st.minutes, st.goals, st.assists,
+            st.xg, st.xa, st.key_passes, st.clean_sheets,
+ 
+            -- contract (structured columns + semi-structured JSON)
+            ci.contract_expiry, ci.weekly_wage, ci.release_clause,
+            JSON_LENGTH(ci.contract_data, '$.clauses') AS extra_clauses
         FROM shortlist s
         JOIN player p     ON s.player_id = p.player_id
         JOIN position pos ON p.position_id = pos.position_id
         LEFT JOIN club c  ON p.club_id = c.club_id
         JOIN nation n     ON p.nation_code = n.nation_code
+ 
+        -- one row per player: sums across clubs if they moved mid-season,
+        -- so a January transfer doesn't show up twice on the shortlist
+        LEFT JOIN (
+            SELECT ps.player_id,
+                   SUM(ps.appearances)    AS appearances,
+                   SUM(ps.minutes_played) AS minutes,
+                   SUM(ps.goals)          AS goals,
+                   SUM(ps.assists)        AS assists,
+                   ROUND(SUM(ps.xg), 2)   AS xg,
+                   ROUND(SUM(ps.xa), 2)   AS xa,
+                   SUM(ps.key_passes)     AS key_passes,
+                   SUM(gk.clean_sheets)   AS clean_sheets      -- NULL for outfielders
+            FROM player_stats ps
+            LEFT JOIN goalkeeper_stats gk ON gk.stat_id = ps.stat_id
+            WHERE ps.season_id = (SELECT MAX(season_id) FROM player_stats)
+              AND ps.player_id IN (SELECT player_id FROM shortlist)
+            GROUP BY ps.player_id
+        ) st ON st.player_id = p.player_id
+ 
+        LEFT JOIN contract_information ci ON ci.player_id = p.player_id
         ORDER BY s.date_added DESC
     """)
-
+ 
+    # scouting reports (unstructured, MongoDB) — one lookup for the whole list
+    ids = [p["player_id"] for p in players]
+    reports = {}
+    if ids:
+        try:
+            reports = {
+                r["player_id"]: r.get("last_updated")
+                for r in get_reports_collection().find(
+                    {"player_id": {"$in": ids}},
+                    {"_id": 0, "player_id": 1, "last_updated": 1},
+                )
+            }
+        except Exception as e:
+            # Mongo being down shouldn't break the shortlist page
+            print("Shortlist: scouting reports unavailable:", repr(e))
+            reports = None
+ 
+    for p in players:
+        if reports is None:
+            p["has_report"] = p["report_updated"] = None
+        else:
+            p["has_report"] = "Yes" if p["player_id"] in reports else "No"
+            p["report_updated"] = reports.get(p["player_id"])
+ 
+    return players
 
 @app.get("/shortlist/{player_id}")
 def is_shortlisted(player_id: int):

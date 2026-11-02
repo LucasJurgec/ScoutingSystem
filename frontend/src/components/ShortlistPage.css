@@ -2,7 +2,7 @@
     margin: 0 0 12px;
     opacity: 0.75;
 }
-
+ 
 /* value + remove button share the last column, so the row grid stays the same */
 .shortlist-value {
     display: flex;
@@ -10,7 +10,7 @@
     justify-content: flex-end;
     gap: 8px;
 }
-
+ 
 .remove-btn {
     background: none;
     border: 1px solid currentColor;
@@ -22,15 +22,98 @@
     cursor: pointer;
     opacity: 0.5;
 }
-
+ 
 .remove-btn:hover,
 .remove-btn:focus-visible {
     opacity: 1;
     color: #e5484d;
 }
-
+ 
 .shortlist-error {
     color: #e5484d;
     font-size: 0.85rem;
     margin: 4px 0 8px;
+}
+ 
+/* ---- CSV column picker ---- */
+ 
+.csv-columns {
+    margin: -12px 0 24px;          /* tuck up under .filters' bottom margin */
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.35);
+}
+ 
+.csv-columns-note {
+    margin: 0 0 10px;
+    font-size: 13px;
+    opacity: 0.7;
+}
+ 
+.csv-group {
+    border: none;
+    margin: 0 0 12px;
+    padding: 0;
+    min-width: 0;
+}
+ 
+.csv-group legend {
+    padding: 0;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+ 
+.csv-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+ 
+.csv-chip {
+    background: transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+ 
+.csv-chip:hover {
+    border-color: #99c2ff;
+}
+ 
+.csv-chip.is-on {
+    background: #3366ff;
+    border-color: #3366ff;
+}
+ 
+.csv-columns-actions {
+    display: flex;
+    gap: 16px;
+}
+ 
+.csv-columns-actions .clear-btn {
+    padding: 0;
+}
+ 
+.csv-chip:focus-visible,
+.nav-btn:focus-visible {
+    outline: 2px solid #99c2ff;
+    outline-offset: 2px;
+}
+ 
+/* .nav-btn had no disabled state, so "Download CSV" looked clickable when empty */
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+ 
+.nav-btn:disabled:hover {
+    background: #fff;
+    border-color: #ccc;
 }
