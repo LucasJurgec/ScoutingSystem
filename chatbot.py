@@ -181,11 +181,11 @@ player(player_id, first_name NULLABLE, last_name, date_of_birth, height [cm], po
 position(position_id, position_general ENUM('Goalkeeper','Defender','Midfielder','Attacker'),
          position_advanced ENUM('GK','RB','LB','CB','DM','CM','AM','LM','RM','LW','RW','ST'))
   player.position_id = PRIMARY position. player_position(player_id, position_id) = SECONDARY positions.
-club(club_id, club_name, club_logo)
+club(club_id, club_name, club_logo) - when quering for a club name use LIKE '%...%' to match partial names
 club_season(club_id, season_id, league_id)  -- league a club played in each season
 league(league_id, league_name, nation_code)
 nation(nation_code CHAR(3) e.g. 'ENG','ESP', nation_name)
-season(season_id, season_name e.g. '2024-25', start_year)  -- higher season_id = more recent
+season(season_id INT, season_name e.g. '2022/23', start_year e.g. 2022)  -- higher season_id = more recent
 player_stats(stat_id, player_id, club_id, season_id, appearances, minutes_played, goals, assists,
              penalty_scored, penalty_attempts, yellow_cards, red_cards, own_goals, shots_total,
              shots_on_target, crosses, fouls_committed, fouls_drawn, offsides, tackles_won,
@@ -203,7 +203,18 @@ RULES FOR SQL
 - player_stats has ONE ROW PER PLAYER PER SEASON PER CLUB. For season totals use SUM() with
   GROUP BY player_id, because a player who moved mid-season has two rows.
 - Latest season: season_id = (SELECT MAX(season_id) FROM player_stats). Use it when no season is given.
-- Current market value = the row with the latest value_date for that player (see example).
+SEASONS
+- season_id is an INTEGER: last two digits of each year joined together.
+  2022/23 -> 2223, 2024/25 -> 2425, 2025/26 -> 2526.
+- For a named season, filter ps.season_id = <number> directly. Never compare season_id
+  to a string, never wrap it in MAX(), and you don't need to join the season table.
+  "22/23", "2022/23", "2022-23", "2022-2023", "the 2022 season" -> ps.season_id = 2223
+- No season given / "this season" -> ps.season_id = (SELECT MAX(season_id) FROM player_stats)
+- "Last season" -> ps.season_id = (SELECT MAX(season_id) FROM player_stats
+      WHERE season_id < (SELECT MAX(season_id) FROM player_stats))
+- A named season ("2023-24") -> JOIN season s ON s.season_id = ps.season_id WHERE s.season_name = '2023/24'
+- For a club's stats, filter on ps.club_id (the club they played for that season),
+  NEVER p.club_id. Match club names with LIKE '%...%'.
 - Current league of a club = club_season row with the highest season_id for that club.
 - Age: TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()).
 - Name: CONCAT_WS(' ', first_name, last_name). Search names with LIKE '%...%'.
@@ -242,11 +253,32 @@ SELECT p.player_id, CONCAT_WS(' ', p.first_name, p.last_name) AS name, ci.contra
 FROM contract_information ci JOIN player p ON p.player_id = ci.player_id
 WHERE ci.contract_expiry BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 12 MONTH)
 ORDER BY ci.contract_expiry LIMIT 25;
+
+-- Roma's top scorers this season
+SELECT CONCAT_WS(' ', p.first_name, p.last_name) AS name, s.season_name, SUM(ps.goals) AS goals
+FROM player_stats ps
+JOIN player p ON p.player_id = ps.player_id
+JOIN club c   ON c.club_id = ps.club_id
+JOIN season s ON s.season_id = ps.season_id
+WHERE c.club_name LIKE '%Roma%'
+  AND ps.season_id = (SELECT MAX(season_id) FROM player_stats)
+GROUP BY p.player_id, name, s.season_name
+ORDER BY goals DESC LIMIT 10;
+
+-- Salah's goals in 2022/23
+SELECT CONCAT_WS(' ', p.first_name, p.last_name) AS name, SUM(ps.goals) AS goals
+FROM player_stats ps JOIN player p ON p.player_id = ps.player_id
+WHERE CONCAT_WS(' ', p.first_name, p.last_name) LIKE '%Salah%'
+  AND ps.season_id = 2223
+GROUP BY p.player_id, name;
  
 ANSWERING
 - Be concise and specific. Name players and quote the numbers the tools returned.
 - Never invent stats, players or report content. If the tools returned nothing useful, say so.
 - Money is in euros. Write large values like EUR 45m or EUR 850k.
+- If run_sql returned rows, those rows ARE the answer. Report them with their numbers.
+- Only say the data isn't available if the tool returned zero rows or an error.
+- Always say which season the numbers are from (e.g. "in 2025-26").
 - Don't show SQL or tool names in your answer unless the user asks."""
  
 _agent = None
