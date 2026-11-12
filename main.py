@@ -89,9 +89,7 @@ def get_players(
             pos.position_general, pos.position_advanced,
             c.club_id, c.club_name, c.club_logo,
             n.nation_code, n.nation_name, n.nation_flag,
-            (SELECT mv.market_value FROM market_value mv
-             WHERE mv.player_id = p.player_id
-             ORDER BY mv.value_date DESC LIMIT 1) AS market_value
+            p.current_market_value AS market_value
         FROM player p
         JOIN position pos ON p.position_id = pos.position_id
         LEFT JOIN club c  ON p.club_id = c.club_id      -- LEFT so free agents/retired still show
@@ -99,7 +97,7 @@ def get_players(
         WHERE 1=1
     """
     params = []
- 
+
     if search:
         # CONCAT_WS skips a NULL first_name, so "Saka" and "Bukayo Saka" both work
         query += " AND CONCAT_WS(' ', p.first_name, p.last_name) LIKE %s"
@@ -121,16 +119,16 @@ def get_players(
     if status:
         query += " AND p.status = %s"
         params.append(status)
- 
+
     # whitelisted, never put user input straight into ORDER BY
     if sort == "name":
         query += " ORDER BY p.last_name ASC, p.first_name ASC"
     else:
-        query += " ORDER BY market_value DESC, p.last_name ASC"
- 
+        query += " ORDER BY p.current_market_value DESC, p.last_name ASC"
+
     query += " LIMIT %s OFFSET %s"
     params.extend([limit, offset])
- 
+
     return run_query(query, params)
  
  

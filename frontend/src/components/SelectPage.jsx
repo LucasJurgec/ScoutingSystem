@@ -12,6 +12,8 @@ const POSITIONS = ['Goalkeeper', 'Defender', 'Midfielder', 'Attacker'];
 const fullName = (p) => [p.first_name, p.last_name].filter(Boolean).join(' ');
 const hideImage = (e) => { e.currentTarget.style.visibility = 'hidden'; };
 
+let optionsCache = null;
+
 function SelectPage() {
     // Filters live in the URL (?league_id=10&position=Attacker...), so pressing
     // back from a player page returns you to the same filtered list.
@@ -66,15 +68,18 @@ function SelectPage() {
 
     // dropdown options, loaded once
     useEffect(() => {
+        if (optionsCache) {
+            setLeagues(optionsCache.leagues); setClubs(optionsCache.clubs); setNations(optionsCache.nations);
+            return;
+        }
         Promise.all([
             axios.get(`${API_BASE}/leagues`),
             axios.get(`${API_BASE}/clubs`),
             axios.get(`${API_BASE}/nations`),
         ])
             .then(([l, c, n]) => {
-                setLeagues(l.data);
-                setClubs(c.data);
-                setNations(n.data);
+                optionsCache = { leagues: l.data, clubs: c.data, nations: n.data };
+                setLeagues(l.data); setClubs(c.data); setNations(n.data);
             })
             .catch(err => console.error('Could not load filter options', err));
     }, []);
