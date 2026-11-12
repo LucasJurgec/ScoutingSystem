@@ -569,9 +569,9 @@ def generate_weekly_reports():
             f.write(rows_to_csv(rows))
 
 # CHANGED: schedule settings, edit these to change when it runs
-SCHEDULE_DAY = "sat"     # mon, tue, wed, thu, fri, sat, sun, or "*" for every day
-SCHEDULE_HOUR = 18       # 24-hour clock
-SCHEDULE_MINUTE = 0
+SCHEDULE_DAY = "wed"     # mon, tue, wed, thu, fri, sat, sun, or "*" for every day
+SCHEDULE_HOUR = 16      # 24-hour clock
+SCHEDULE_MINUTE = 49
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(generate_weekly_reports, "cron",
