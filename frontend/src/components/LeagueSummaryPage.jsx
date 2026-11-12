@@ -26,15 +26,9 @@ function LeagueSummaryPage() {
     const [loading, setLoading] = useState(true);
     const [sortKey, setSortKey] = useState('avg_market_value');
     const [sortDir, setSortDir] = useState('desc');
-    const [files, setFiles] = useState([]);
-    const [generating, setGenerating] = useState(false);
-
-    const loadFiles = () =>
-        axios.get(`${API_BASE}/reports/league-summary/files`).then(r => setFiles(r.data)).catch(console.error);
 
     useEffect(() => {
         axios.get(`${API_BASE}/leagues`).then(r => setLeagues(r.data)).catch(console.error);
-        loadFiles();
     }, []);
 
     useEffect(() => {
@@ -66,12 +60,6 @@ function LeagueSummaryPage() {
         a.download = `league_summary_${lg ? lg.league_name.replace(/\s+/g, '_') : 'all'}.csv`;
         a.click();
         URL.revokeObjectURL(url);
-    };
-
-    const generateNow = () => {
-        setGenerating(true);
-        axios.post(`${API_BASE}/reports/league-summary/generate`).then(loadFiles)
-            .catch(console.error).finally(() => setGenerating(false));
     };
 
     return (
@@ -111,25 +99,6 @@ function LeagueSummaryPage() {
               </table>
             </div>
           )}
-
-        <div className="weekly-reports">
-          <div className="weekly-head">
-            <h2>Weekly reports</h2>
-            <button className="nav-btn" onClick={generateNow} disabled={generating}>
-              {generating ? 'Generating…' : 'Generate now'}
-            </button>
-          </div>
-          {files.length === 0 ? <p className="list-status">No reports generated yet.</p> : (
-            <ul className="file-list">
-              {files.map(f => (
-                <li key={f.name}>
-                  <a href={`${API_BASE}/reports/league-summary/files/${encodeURIComponent(f.name)}`}>{f.name}</a>
-                  <span>{new Date(f.generated_at).toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
       </div>
     );
 }
