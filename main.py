@@ -568,8 +568,3 @@ def download_report_file(name: str):
     if not os.path.exists(path):
         raise HTTPException(404, "Report not found")
     return FileResponse(path, media_type="text/csv", filename=safe)
-
-@app.post("/reports/league-summary/generate")
-def generate_now():
-    generate_weekly_reports()
-    return {"ok": True}
