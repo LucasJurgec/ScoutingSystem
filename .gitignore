@@ -4,7 +4,8 @@
 # Data files (too big for GitHub, kept local)
 *.csv
 *.xlsx
-*.parquet
+*.parque
+*.sql
 datasets/
 
 # Python
