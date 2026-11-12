@@ -10,7 +10,6 @@ import SimilarPlayerModel as sp
 import csv, io
 from datetime import datetime
 from fastapi.responses import FileResponse
-from apscheduler.schedulers.background import BackgroundScheduler
 
 sp.refresh()  # load data + build the k-NN models once at startup
  
