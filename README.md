@@ -148,7 +148,7 @@ The dev server runs on http://localhost:5173 and talks to the backend at http://
 
 - Free-tier cold starts (see the note at the top)
 - Gemini free-tier rate limits can make the AI Assistant unreliable
-- Stats cover the 2025/26 season for the top 5 leagues only
+- Only top 5 leagues have advanced stats
 
 ## Author
 
