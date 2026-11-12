@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://scoutingsystem.onrender.com/:path*" }
+  ]
+}

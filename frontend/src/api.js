@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
  
 // Set VITE_API_URL in frontend/.env when it's deployed
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE = import.meta.env.PROD ? "/api" : "http://localhost:8000";
  
 // Small fetch hook: const { data, loading, error } = useApi('/players/3333/contract')
 export function useApi(path) {
