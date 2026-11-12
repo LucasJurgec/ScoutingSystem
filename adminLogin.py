@@ -6,7 +6,7 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
  
-from database import get_connection
+from database import get_connection, get_readonly_connection
  
 router = APIRouter()
  
@@ -107,31 +107,30 @@ def run_query(body: QueryBody, user=Depends(require_login)):
         )
     if re.search(r"\binto\s+(outfile|dumpfile)\b", sql, re.IGNORECASE):
         raise HTTPException(status_code=400, detail="Writing to files is not allowed.")
- 
-    conn = get_connection()
+
+    # SELECT-only database user: the database itself refuses writes,
+    # even if a check above misses something
+    conn = get_readonly_connection()
     try:
         cur = conn.cursor()
         cur.execute(f"SET SESSION MAX_EXECUTION_TIME = {MAX_EXECUTION_MS}")
-        cur.execute("START TRANSACTION READ ONLY")  # DB refuses writes even if a check above missed one
         cur.execute(sql)
- 
+
         columns = [d[0] for d in cur.description] if cur.description else []
-        rows = cur.fetchall() if columns else []
-        conn.rollback()
-    except HTTPException:
-        raise
-    except Exception as e:  # MySQL errors (bad syntax, unknown table...) go back to the page
-        try:
-            conn.rollback()
-        except Exception:
-            pass
+        # only pull ROW_LIMIT + 1 rows into memory, so SELECT * on a big
+        # table can't run the free-tier server out of RAM
+        rows = cur.fetchmany(ROW_LIMIT + 1) if columns else []
+    except Exception as e:  # SQL errors (bad syntax, unknown table, no permission...) go back to the page
         raise HTTPException(status_code=400, detail=str(e))
     finally:
-        conn.close()
- 
+        try:
+            conn.close()
+        except Exception:
+            pass  # closing with unread rows left over can complain; safe to ignore
+
     return {
         "columns": columns,
         "rows": [[json_safe(v) for v in as_tuple(r)] for r in rows[:ROW_LIMIT]],
-        "row_count": len(rows),
+        "row_count": min(len(rows), ROW_LIMIT),
         "truncated": len(rows) > ROW_LIMIT,
     }

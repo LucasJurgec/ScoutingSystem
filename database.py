@@ -38,6 +38,15 @@ def get_connection():
     # cursor.close(); conn.close() pattern still works as-is.
     return _pool.get_connection()
 
+def get_readonly_connection():
+    """Connection for the admin query console. Uses a SELECT-only user in
+    production; falls back to the normal user locally if none is set."""
+    config = _mysql_config()
+    if os.getenv("DB_RO_USER"):
+        config["user"] = os.getenv("DB_RO_USER")
+        config["password"] = os.getenv("DB_RO_PASSWORD")
+    return mysql.connector.connect(**config, connection_timeout=10)
+
 # MongoDB
 
 _mongo_client = MongoClient(os.getenv("MONGODB_URI"))
