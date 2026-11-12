@@ -108,9 +108,13 @@ def run_query(body: QueryBody, user=Depends(require_login)):
     if re.search(r"\binto\s+(outfile|dumpfile)\b", sql, re.IGNORECASE):
         raise HTTPException(status_code=400, detail="Writing to files is not allowed.")
 
-    # SELECT-only database user: the database itself refuses writes,
+        # SELECT-only database user: the database itself refuses writes,
     # even if a check above misses something
-    conn = get_readonly_connection()
+    try:
+        conn = get_readonly_connection()
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Could not connect to the database: {e}")
+
     try:
         cur = conn.cursor()
         cur.execute(f"SET SESSION MAX_EXECUTION_TIME = {MAX_EXECUTION_MS}")
