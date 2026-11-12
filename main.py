@@ -551,36 +551,6 @@ def rows_to_csv(rows):
         w.writerow([r.get(k, "") for k, _ in CSV_COLUMNS])
     return buf.getvalue()
 
-def generate_weekly_reports():
-    leagues = run_query(f"""
-        SELECT DISTINCT l.league_id, l.league_name
-        FROM club_season cs JOIN league l ON cs.league_id = l.league_id
-        WHERE cs.season_id = {LATEST_SEASON}
-    """)
-    stamp = datetime.now().strftime("%Y-%m-%d_%H%M")          # CHANGED: added time so runs don't overwrite
-    for lg in leagues:
-        rows = build_league_summary(lg["league_id"])
-        if not rows:
-            continue
-        safe = lg["league_name"].replace(" ", "_").replace("/", "-")
-        with open(os.path.join(REPORTS_DIR, f"league_summary_{safe}_{stamp}.csv"),
-                  "w", newline="", encoding="utf-8-sig") as f:   # CHANGED: utf-8-sig so Excel shows accents
-            f.write(rows_to_csv(rows))
-
-# CHANGED: schedule settings, edit these to change when it runs
-SCHEDULE_DAY = "wed"     # mon, tue, wed, thu, fri, sat, sun, or "*" for every day
-SCHEDULE_HOUR = 16      # 24-hour clock
-SCHEDULE_MINUTE = 49
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(generate_weekly_reports, "cron",
-                  day_of_week=SCHEDULE_DAY, hour=SCHEDULE_HOUR, minute=SCHEDULE_MINUTE,
-                  id="weekly_league_summary", replace_existing=True,
-                  coalesce=True, misfire_grace_time=3600)
-scheduler.start()
-print("[scheduler] Weekly league summary next run:",
-      scheduler.get_job("weekly_league_summary").next_run_time)
-
 @app.get("/reports/league-summary/files")
 def list_report_files():
     files = []
