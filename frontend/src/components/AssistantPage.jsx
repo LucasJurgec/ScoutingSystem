@@ -20,10 +20,10 @@ const EXAMPLES = [
 function chatErrorMessage(err) {
     const status = err.response?.status;
     const detail = err.response?.data?.detail;
-    if (status === 503) {
-        return 'The AI model (Google Gemini, free tier) is busy or rate-limited right now. Try again in a minute.';
+    if (status === 503 || status === 504) {
+        return "Gemini (Google's AI model) is busy right now. This happens on the free tier and usually clears within a few minutes. Try again shortly.";
     }
-    if (!err.response || status === 502 || status === 504) {
+    if (!err.response || status === 502) {
         return "The server didn't respond. It may be waking up after being idle (this can take up to a minute). Try again shortly.";
     }
     if (typeof detail === 'string') return detail;
