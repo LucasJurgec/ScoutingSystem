@@ -16,6 +16,21 @@ const EXAMPLES = [
     'Which contracts expire in the next 12 months?',
 ];
 
+// Turn the backend's error response into something a visitor can understand.
+function chatErrorMessage(err) {
+    const status = err.response?.status;
+    const detail = err.response?.data?.detail;
+    if (status === 503) {
+        return 'The AI model (Google Gemini, free tier) is busy or rate-limited right now. Try again in a minute.';
+    }
+    if (!err.response || status === 502 || status === 504) {
+        return "The server didn't respond. It may be waking up after being idle (this can take up to a minute). Try again shortly.";
+    }
+    if (typeof detail === 'string') return detail;
+    if (detail?.message) return detail.message;
+    return 'Something went wrong answering that question. Try again or rephrase it.';
+}
+
 // Collapsible panel showing the tool calls behind an answer (SQL + report searches).
 function ToolSteps({ steps }) {
     if (!steps || steps.length === 0) return null;
@@ -39,6 +54,7 @@ function AssistantPage() {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [failedMessage, setFailedMessage] = useState(null); // question to resend on "Try again"
 
     const scrollRef = useRef(null);
     const inputRef = useRef(null);
@@ -46,20 +62,22 @@ function AssistantPage() {
     // keep the latest message in view
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-    }, [messages, loading]);
+    }, [messages, loading, error]);
 
-    const send = async (text) => {
+    const send = async (text, { retry = false } = {}) => {
         const message = (text ?? input).trim();
         if (!message || loading) return;
 
-        // send only {role, content} for prior turns; backend slices to HISTORY_TURNS too
-        const history = messages
+        // on a retry the failed question is already on screen, so leave it out of history
+        const prior = retry ? messages.slice(0, -1) : messages;
+        const history = prior
             .slice(-HISTORY_TURNS)
             .map(m => ({ role: m.role, content: m.content }));
 
-        setMessages(prev => [...prev, { role: 'user', content: message }]);
+        if (!retry) setMessages(prev => [...prev, { role: 'user', content: message }]);
         setInput('');
         setError(null);
+        setFailedMessage(null);
         setLoading(true);
 
         try {
@@ -72,8 +90,10 @@ function AssistantPage() {
                 models: models_used || [],
             }]);
         } catch (err) {
-            console.error(err);
-            setError(`Could not reach the assistant. Check the API is running at ${API_BASE}.`);
+            // the full backend response, so you can see why it failed in DevTools
+            console.error('Chat failed:', err.response?.status, err.response?.data ?? err.message);
+            setError(chatErrorMessage(err));
+            setFailedMessage(message);
         } finally {
             setLoading(false);
             inputRef.current?.focus();
@@ -129,7 +149,16 @@ function AssistantPage() {
                     </div>
                 )}
 
-                {error && <p className="chat-error">{error}</p>}
+                {error && (
+                    <div className="chat-error" role="alert">
+                        <p>{error}</p>
+                        {failedMessage && (
+                            <button className="nav-btn" onClick={() => send(failedMessage, { retry: true })}>
+                                Try again
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="chat-input-bar">
